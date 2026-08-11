@@ -1,13 +1,27 @@
-import boto3
+"""
+Rightsizing Recommendations Engine Script
+Runs multi-cloud compute, storage, and container waste analysis.
+"""
 
-# Initialize AWS Compute Optimizer client
-optimizer = boto3.client("compute-optimizer")
+from finops_engine.connectors import MockTelemetryConnector
+from finops_engine.ai import RightsizingEngine
 
-# Get EC2 rightsizing recommendations
-recommendations = optimizer.get_ec2_instance_recommendations()
+def run_rightsizing_analysis():
+    print("⚡ Running Multi-Cloud Rightsizing & Waste Vector Analysis...")
+    connector = MockTelemetryConnector(days=30)
+    records = connector.fetch_cost_data()
 
-# Process recommendations
-for rec in recommendations["instanceRecommendations"]:
-    print(f"Instance: {rec['instanceArn']} - Recommended Action: {rec['recommendationOptions'][0]['instanceType']}")
+    engine = RightsizingEngine()
+    results = engine.generate_recommendations(records)
 
-print("✅ Automated Rightsizing Recommendations script executed successfully.")
+    print(f"\n💡 Current Monthly Spend: ${results['total_current_monthly_spend_usd']:,.2f}")
+    print(f"💰 Potential Monthly Savings: ${results['total_potential_monthly_savings_usd']:,.2f} ({results['potential_savings_percentage']}% ROI)")
+    print("\nActionable Recommendations:")
+    for rec in results["recommendations"]:
+        print(f"   [{rec['id']}] {rec['provider']} | {rec['category']}: {rec['action']} -> Save ${rec['estimated_monthly_savings_usd']}/mo")
+
+    print("\n✅ Rightsizing Recommendations execution completed successfully.")
+    return results
+
+if __name__ == "__main__":
+    run_rightsizing_analysis()

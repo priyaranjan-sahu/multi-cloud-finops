@@ -1,14 +1,24 @@
-import boto3
+"""
+Automated Rightsizing Export Script
+Executes waste analysis and writes recommendations to output JSON file.
+"""
 
-client = boto3.client("ce")
+import json
+import os
+from finops_engine.connectors import MockTelemetryConnector
+from finops_engine.ai import RightsizingEngine
 
-# Fetch rightsizing recommendations
-response = client.get_rightsizing_recommendation(
-    Service="AmazonEC2"
-)
+def export_rightsizing_recommendations(output_path: str = "output/rightsizing_recommendations.json"):
+    connector = MockTelemetryConnector(days=30)
+    records = connector.fetch_cost_data()
+    engine = RightsizingEngine()
+    results = engine.generate_recommendations(records)
 
-# Save recommendations
-with open("output/rightsizing_recommendations.json", "w") as f:
-    f.write(str(response))
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w") as f:
+        json.dump(results, f, indent=2)
 
-print("✅ Rightsizing Recommendations Generated. Results saved to output/rightsizing_recommendations.json.")
+    print(f"✅ Rightsizing recommendations exported to {output_path}")
+
+if __name__ == "__main__":
+    export_rightsizing_recommendations()

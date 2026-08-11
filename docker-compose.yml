@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  finops-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finops-api-server
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: finops-prometheus
+    restart: always
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - finops-api
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: finops-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./monitoring/grafana_dashboard.json:/var/lib/grafana/dashboards/multi-cloud-finops.json
+    depends_on:
+      - prometheus

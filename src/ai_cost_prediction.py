@@ -1,26 +1,27 @@
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
+"""
+Standalone AI Cost Forecasting Script
+Executes time-series predictive modeling on multi-cloud spend trends.
+"""
 
-# Sample cost data (replace with real billing data)
-data = {
-    "month": list(range(1, 13)),
-    "cost": [100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320]
-}
+from finops_engine.connectors import MockTelemetryConnector
+from finops_engine.ai import CostForecaster
 
-df = pd.DataFrame(data)
+def run_cost_prediction(forecast_days: int = 30):
+    print(f"📊 Fetching historical cost data and running {forecast_days}-day AI forecast...")
+    connector = MockTelemetryConnector(days=60)
+    records = connector.fetch_cost_data()
 
-# Train ML model
-X = df[["month"]]
-y = df["cost"]
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    forecaster = CostForecaster(forecast_days=forecast_days)
+    result = forecaster.predict_future_cost(records)
 
-model = LinearRegression()
-model.fit(X_train, y_train)
+    print(f"\n🔮 Projected Total Spend (Next {forecast_days} Days): ${result['total_projected_spend_usd']:,.2f}")
+    print(f"📈 Daily Projected Average: ${result['average_daily_projected_usd']:,.2f}")
+    print("\nSample Forecast Highlights:")
+    for f in result["forecast"][:5]:
+        print(f"   📅 {f['date']}: Projected ${f['predicted_cost_usd']} (95% CI: ${f['confidence_lower_usd']} - ${f['confidence_upper_usd']})")
 
-# Predict next 3 months
-future_months = np.array([[13], [14], [15]])
-predictions = model.predict(future_months)
+    print("\n✅ AI Cost Prediction execution completed successfully.")
+    return result
 
-print("Predicted Costs for Next 3 Months:", predictions)
+if __name__ == "__main__":
+    run_cost_prediction(30)

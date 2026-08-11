@@ -1,20 +1,26 @@
-import pandas as pd
-import numpy as np
-from sklearn.ensemble import IsolationForest
+"""
+Standalone AI Anomaly Detection Script
+Executes Isolation Forest + Z-Score detector on FOCUS 1.0 multi-cloud telemetry.
+"""
 
-# Load cloud billing data
-df = pd.read_csv("data/cloud_billing.csv")
+from finops_engine.connectors import MockTelemetryConnector
+from finops_engine.ai import AnomalyDetector
 
-# Selecting relevant features
-features = df[['aws_cost', 'gcp_cost', 'azure_cost']]
+def run_anomaly_detection():
+    print("🔍 Fetching multi-cloud telemetry for AI anomaly detection...")
+    connector = MockTelemetryConnector(days=90)
+    records = connector.fetch_cost_data()
 
-# Train an Isolation Forest model
-model = IsolationForest(contamination=0.05, random_state=42)
-df['anomaly'] = model.fit_predict(features)
+    print("🤖 Executing Isolation Forest & Z-Score anomaly detection model...")
+    detector = AnomalyDetector(contamination=0.05, z_threshold=2.0)
+    anomalies = detector.detect_anomalies(records)
 
-# Identify anomalies
-anomalies = df[df['anomaly'] == -1]
+    print(f"\n🚨 Detected {len(anomalies)} Cost Anomalies:")
+    for idx, a in enumerate(anomalies, 1):
+        print(f"   [{idx}] {a['date']} | {a['provider']} - {a['service']}: Actual ${a['actual_cost_usd']} vs Expected ${a['expected_baseline_usd']} (Spike: +${a['anomaly_excess_usd']}) [{a['severity']}]")
 
-# Save anomalies report
-anomalies.to_csv("output/cost_anomalies.csv", index=False)
-print("✅ Anomaly Detection Completed. Results saved to output/cost_anomalies.csv.")
+    print("\n✅ Anomaly Detection execution completed successfully.")
+    return anomalies
+
+if __name__ == "__main__":
+    run_anomaly_detection()

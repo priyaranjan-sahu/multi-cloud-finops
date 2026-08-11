@@ -1,17 +1,25 @@
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
-  name: cost-optimized-scaler
+  name: finops-keda-autoscaler
+  namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: cloud-cost-app
+    name: multi-cloud-finops-app
   minReplicaCount: 1
-  maxReplicaCount: 10
+  maxReplicaCount: 15
+  cooldownPeriod: 300
+  pollingInterval: 15
   triggers:
   - type: prometheus
     metadata:
-      serverAddress: http://prometheus.monitoring.svc:9090
-      query: sum(rate(container_cpu_usage_seconds_total[1m])) by (pod)
-      threshold: "0.7"
+      serverAddress: http://finops-prometheus.monitoring.svc:9090
+      query: sum(rate(container_cpu_usage_seconds_total{container="multi-cloud-finops-app"}[2m]))
+      threshold: '0.70'
+  - type: prometheus
+    metadata:
+      serverAddress: http://finops-prometheus.monitoring.svc:9090
+      query: sum(container_memory_working_set_bytes{container="multi-cloud-finops-app"}) / sum(machine_memory_bytes)
+      threshold: '0.80'
