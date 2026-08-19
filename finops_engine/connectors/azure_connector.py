@@ -29,6 +29,7 @@ class AzureConnector:
             from azure.identity import DefaultAzureCredential
             from azure.mgmt.costmanagement import CostManagementClient
             from azure.mgmt.costmanagement.models import (
+                ExportType,
                 GranularityType,
                 QueryAggregation,
                 QueryDataset,
@@ -43,8 +44,12 @@ class AzureConnector:
             scope = f"/subscriptions/{self.subscription_id}"
 
             query = QueryDefinition(
+                type=ExportType.USAGE,
                 timeframe=TimeframeType.CUSTOM,
-                time_period=QueryTimePeriod(from_property=start_date, to=end_date),
+                time_period=QueryTimePeriod(
+                    from_property=datetime.strptime(start_date, "%Y-%m-%d"),
+                    to=datetime.strptime(end_date, "%Y-%m-%d"),
+                ),
                 dataset=QueryDataset(
                     granularity=GranularityType.DAILY,
                     aggregation={"totalCost": QueryAggregation(name="PreTaxCost", function="Sum")},
@@ -53,7 +58,10 @@ class AzureConnector:
             )
 
             result = client.query.usage(scope=scope, parameters=query)
-            columns = [c["name"] for c in result.columns] if result.columns else []
+            if not result:
+                return records
+
+            columns = [c.name for c in result.columns] if result.columns else []
 
             for row in result.rows or []:
                 try:
@@ -83,7 +91,7 @@ class AzureConnector:
                         )
                     )
                 except (TypeError, ValueError) as exc:
-                    logger.warning("Skipping malformed Azure record for %s: %s", service_name, exc)
+                    logger.warning("Skipping malformed Azure record: %s", exc)
         except Exception as e:
             logger.warning("Azure Cost Management query failed or credentials not present (%s).", e)
 

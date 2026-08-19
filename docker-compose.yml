@@ -19,7 +19,7 @@ services:
       retries: 3
 
   prometheus:
-    image: prom/prometheus:v2.47.0
+    image: prom/prometheus:v3.13.2
     container_name: finops-prometheus
     restart: always
     volumes:
@@ -32,7 +32,7 @@ services:
       - cadvisor
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    image: ghcr.io/google/cadvisor:v0.60.5
     container_name: finops-cadvisor
     restart: always
     privileged: true
@@ -48,7 +48,7 @@ services:
       - "8080:8080"
 
   grafana:
-    image: grafana/grafana:10.1.0
+    image: grafana/grafana:13.1.3
     container_name: finops-grafana
     restart: always
     ports:
