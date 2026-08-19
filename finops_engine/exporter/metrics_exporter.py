@@ -96,11 +96,16 @@ def update_finops_metrics() -> None:
         # Update Potential Savings Metrics
         rightsizing = RightsizingEngine()
         recs = rightsizing.generate_recommendations(records)
+
+        # Accumulate per (provider, category) so multiple recommendations
+        # sharing a label set are summed instead of overwriting each other.
+        savings_map: dict[tuple[str, str], float] = {}
         for rec in recs.get("recommendations", []):
-            FINOPS_SAVINGS_GAUGE.labels(
-                provider=rec.get("provider", "Multi-Cloud"),
-                category=rec.get("category", "General"),
-            ).set(rec.get("estimated_monthly_savings_usd", 0.0))
+            key = (rec.get("provider", "Multi-Cloud"), rec.get("category", "General"))
+            savings_map[key] = savings_map.get(key, 0.0) + rec.get("estimated_monthly_savings_usd", 0.0)
+
+        for (provider, category), savings in savings_map.items():
+            FINOPS_SAVINGS_GAUGE.labels(provider=provider, category=category).set(round(savings, 2))
 
     except Exception:
         logger.exception("Failed to update Prometheus metrics")
