@@ -30,8 +30,8 @@ class FocusRecord(BaseModel):
     provider_name: CloudProvider = Field(..., description="AWS, GCP, or Azure")
     publisher_name: str = Field(default="Cloud Provider", description="Entity publishing the bill")
     charge_category: ChargeCategory = Field(default=ChargeCategory.USAGE)
-    billed_cost: float = Field(..., ge=0.0, description="Raw cost billed before adjustments")
-    effective_cost: float = Field(..., ge=0.0, description="Net cost including amortized commitments")
+    billed_cost: float = Field(..., description="Raw cost billed before adjustments (negative for credits)")
+    effective_cost: float = Field(..., description="Net cost including amortized commitments")
     currency: str = Field(default="USD")
     usage_quantity: float = Field(default=0.0, ge=0.0)
     usage_unit: str = Field(default="Hours")
@@ -44,10 +44,8 @@ class FocusRecord(BaseModel):
     billing_period_end: datetime = Field(...)
 
     def to_dict(self) -> dict:
-        data = self.model_dump()
-        data["billing_period_start"] = self.billing_period_start.isoformat()
-        data["billing_period_end"] = self.billing_period_end.isoformat()
-        return data
+        """Serialize the record to a JSON-friendly dictionary."""
+        return self.model_dump(mode="json")
 
 
 def normalize_to_focus_dataframe(records: List[FocusRecord]) -> pd.DataFrame:
