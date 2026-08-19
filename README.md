@@ -15,6 +15,24 @@
 
 Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GCP, and Azure. All telemetry is normalized to the FOCUS 1.0 schema, exposed through a FastAPI service, and exported to Prometheus for Grafana dashboards.
 
+## Table of contents
+
+- [What it does](#what-it-does)
+- [Architecture](#architecture)
+- [Demo](#demo)
+- [Quick start](#quick-start)
+- [Project structure](#project-structure)
+- [API](#api)
+- [CLI tooling](#cli-tooling)
+- [Monitoring](#monitoring)
+- [Infrastructure](#infrastructure)
+- [Kubernetes](#kubernetes)
+- [Tests](#tests)
+- [Tech stack](#tech-stack)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
+
 ## What it does
 
 | Capability | Description |
@@ -26,6 +44,31 @@ Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GC
 | Spot optimization | Estimated savings from spot / preemptible workload migration |
 | Monitoring | Background metrics exporter feeding Prometheus, with auto-provisioned Grafana dashboards |
 | Autoscaling | KEDA-driven Kubernetes scaling based on utilization ratios |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Providers
+        AWS["AWS Cost Explorer"]
+        GCP["GCP BigQuery Export"]
+        AZ["Azure Cost Management"]
+    end
+    AWS --> CON["connectors"]
+    GCP --> CON
+    AZ --> CON
+    CON --> FOC["FOCUS 1.0 FocusRecord"]
+    FOC --> AI["AI engines"]
+    FOC --> API["FastAPI /api/v1"]
+    FOC --> CLI["scripts CLI"]
+    AI --> API
+    API --> PROM["Prometheus metrics"]
+    PROM --> GRA["Grafana dashboards"]
+```
+
+## Demo
+
+![CLI and API demo](assets/terminal-demo.svg)
 
 ## Quick start
 
@@ -82,6 +125,8 @@ multi-cloud-finops/
 ├── LICENSE
 ├── SECURITY.md
 ├── social-preview.png              # Repository social preview image
+├── assets/
+│   └── terminal-demo.svg           # README demo image
 │
 ├── finops_engine/                  # Core package
 │   ├── config.py                   # Env-driven settings
