@@ -12,6 +12,9 @@ __pycache__
 .coverage
 htmlcov
 output
+infra
+kubernetes
+monitoring
 infra/.terraform
 infra/*.tfstate*
 tests
