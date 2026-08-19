@@ -1,8 +1,7 @@
-"""
-AI Cost Forecasting Engine
-Projects future cloud spend with a time-series linear regression model and
-proper t-distribution based 95% prediction intervals that widen with the
-forecast horizon.
+"""Daily spend forecast built from linear regression on historical telemetry.
+
+Returns point predictions with t-based 95% prediction intervals that widen
+with the forecast horizon.
 """
 
 from datetime import timedelta

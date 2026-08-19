@@ -1,7 +1,7 @@
-"""
-AI Cost Anomaly Detection Engine
-Combines Isolation Forest ML model with dynamic rolling Z-Score thresholding
-to detect spend anomalies across multi-cloud environments.
+"""Anomaly detection over FOCUS cost telemetry.
+
+Flags days whose spend deviates sharply from a provider/service baseline,
+using Isolation Forest combined with a rolling z-score check.
 """
 
 from typing import Any
@@ -23,19 +23,16 @@ class AnomalyDetector:
         if df.empty:
             return []
 
-        # Group spend by Date, Provider, and Service
         df["date"] = df["billing_period_start"].dt.date
         daily = df.groupby(["date", "provider_name", "service_name"])["billed_cost"].sum().reset_index()
 
         if len(daily) < 5:
             return []
 
-        # Fit Isolation Forest ML model
         X = daily[["billed_cost"]].values
         self.model.fit(X)
         daily["iforest_score"] = self.model.predict(X)
 
-        # Calculate Rolling Mean and Z-Score per Provider + Service
         daily["mean"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
             lambda x: x.rolling(7, min_periods=1).mean()
         )
@@ -44,7 +41,6 @@ class AnomalyDetector:
         )
         daily["z_score"] = (daily["billed_cost"] - daily["mean"]) / daily["std"].replace(0, 1.0)
 
-        # Flag as anomaly if either Isolation Forest flags it (-1) AND Z-score exceeds threshold
         anomalies_df = daily[(daily["iforest_score"] == -1) & (daily["z_score"] >= self.z_threshold)].copy()
 
         results = []
@@ -63,10 +59,7 @@ class AnomalyDetector:
                     "anomaly_excess_usd": excess_cost,
                     "z_score": round(float(row["z_score"]), 2),
                     "severity": "HIGH" if excess_cost > 200 else ("MEDIUM" if excess_cost > 50 else "LOW"),
-                    "root_cause": (
-                        f"Unusual spend spike detected in {row['provider_name']} service "
-                        f"{row['service_name']} (${excess_cost} above baseline)"
-                    ),
+                    "root_cause": f"{row['provider_name']} {row['service_name']} spent ${excess_cost} above baseline",
                 }
             )
 

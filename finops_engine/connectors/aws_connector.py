@@ -1,7 +1,4 @@
-"""
-AWS Billing & Cost Explorer Connector
-Fetches AWS cost telemetry and maps it into FOCUS 1.0 normalized records.
-"""
+"""AWS Cost Explorer connector."""
 
 import logging
 from datetime import datetime, timedelta, timezone

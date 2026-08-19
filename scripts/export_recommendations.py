@@ -1,7 +1,4 @@
-"""
-Automated Rightsizing Export CLI
-Executes waste analysis and writes recommendations to a JSON file.
-"""
+"""Export rightsizing recommendations to a JSON file."""
 
 import argparse
 import json
@@ -23,7 +20,7 @@ def export_rightsizing_recommendations(
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    print(f"✅ Rightsizing recommendations exported to {output_path}")
+    print(f"Rightsizing recommendations exported to {output_path}")
     return output_path
 
 

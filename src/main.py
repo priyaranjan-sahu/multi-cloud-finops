@@ -1,7 +1,4 @@
-"""
-Multi-Cloud FinOps API Entrypoint
-Imports FastAPI application from finops_engine.
-"""
+"""Application entry point for the FinOps API server."""
 
 if __name__ == "__main__":
     import uvicorn

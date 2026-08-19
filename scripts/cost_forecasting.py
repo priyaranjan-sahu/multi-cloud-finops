@@ -1,7 +1,4 @@
-"""
-Standalone AI Cost Forecasting CLI
-Executes time-series predictive modeling on multi-cloud spend trends.
-"""
+"""Forecast future spend from the command line."""
 
 import argparse
 
@@ -10,23 +7,22 @@ from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_cost_prediction(forecast_days: int = 30, history_days: int = 60) -> dict:
-    print(f"📊 Fetching {history_days} days of historical cost data for a {forecast_days}-day AI forecast...")
+    print(f"Fetching {history_days} days of historical cost data for a {forecast_days}-day forecast...")
     connector = MockTelemetryConnector(days=history_days)
     records = connector.fetch_cost_data()
 
     forecaster = CostForecaster(forecast_days=forecast_days)
     result = forecaster.predict_future_cost(records)
 
-    print(f"\n🔮 Projected Total Spend (Next {forecast_days} Days): ${result['total_projected_spend_usd']:,.2f}")
-    print(f"📈 Daily Projected Average: ${result['average_daily_projected_usd']:,.2f}")
-    print("\nSample Forecast Highlights:")
+    print(f"\nProjected total spend (next {forecast_days} days): ${result['total_projected_spend_usd']:,.2f}")
+    print(f"Daily projected average: ${result['average_daily_projected_usd']:,.2f}")
+    print("\nSample forecast highlights:")
     for item in result["forecast"][:5]:
         print(
-            f"   📅 {item['date']}: Projected ${item['predicted_cost_usd']} "
+            f"   {item['date']}: projected ${item['predicted_cost_usd']} "
             f"(95% CI: ${item['confidence_lower_usd']} - ${item['confidence_upper_usd']})"
         )
 
-    print("\n✅ AI Cost Prediction execution completed successfully.")
     return result
 
 

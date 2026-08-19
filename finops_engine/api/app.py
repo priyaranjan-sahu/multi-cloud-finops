@@ -1,7 +1,8 @@
 """
-Enterprise FastAPI REST API Server for Multi-Cloud FinOps Platform
-Exposes RESTful endpoints for FOCUS telemetry, AI anomaly detection, forecasting,
-and rightsizing, with typed response models and optional API-key authentication.
+FastAPI application exposing the FinOps REST endpoints.
+
+Serves FOCUS telemetry, anomaly detection, forecasting, and rightsizing
+results with typed response models and optional API-key authentication.
 """
 
 import asyncio
@@ -53,8 +54,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Multi-Cloud FinOps Platform API",
-    description="Multi-Cloud Cost Optimization & AI Anomaly Detection Engine (FOCUS-aligned)",
+    title="Multi-Cloud FinOps API",
+    description="Cost optimization and anomaly detection for AWS, GCP, and Azure (FOCUS-aligned)",
     version=__version__,
     lifespan=lifespan,
 )

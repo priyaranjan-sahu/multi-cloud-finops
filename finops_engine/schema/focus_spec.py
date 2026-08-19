@@ -1,7 +1,4 @@
-"""
-FOCUS 1.0 (FinOps Open Cost & Usage Specification) Data Model
-Provides standard schema normalization across AWS, GCP, and Azure cost telemetry.
-"""
+"""FOCUS 1.0 schema types and normalization helpers."""
 
 from datetime import datetime
 from enum import Enum

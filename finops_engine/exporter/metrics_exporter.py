@@ -1,10 +1,8 @@
-"""
-Prometheus Metrics Exporter for Multi-Cloud FinOps Telemetry
-Exposes metrics for scraping by a Prometheus server.
+"""Prometheus metrics for the FinOps engine.
 
-Metrics are recomputed on a background loop (so the /metrics endpoint stays
-fast and never blocks on model fitting), cached between refreshes, and label
-sets are cleared each cycle to avoid stale series.
+Metrics are recomputed on a background loop so /metrics stays fast and never
+blocks on model fitting, cached between refreshes, and label sets are cleared
+each cycle to avoid stale series.
 """
 
 import asyncio
@@ -29,7 +27,6 @@ __all__ = [
     "update_finops_metrics",
 ]
 
-# Prometheus Metrics Definitions
 FINOPS_COST_GAUGE = Gauge(
     "finops_cloud_cost_usd",
     "Current accumulated cloud cost in USD",
@@ -68,12 +65,10 @@ def update_finops_metrics() -> None:
     try:
         records, _ = fetch_multicloud_cost(use_mock=settings.mock_mode, days=30, allow_fallback=True)
 
-        # Clear previous label sets to avoid stale series.
         FINOPS_COST_GAUGE.clear()
         FINOPS_SAVINGS_GAUGE.clear()
         FINOPS_ANOMALIES_GAUGE.clear()
 
-        # Update Cost Gauge by Provider and Service
         cost_map: dict[tuple[str, str], float] = {}
         for record in records:
             key = (record.provider_name.value, record.service_name)
@@ -82,7 +77,6 @@ def update_finops_metrics() -> None:
         for (provider, service), cost in cost_map.items():
             FINOPS_COST_GAUGE.labels(provider=provider, service=service).set(round(cost, 2))
 
-        # Update Anomaly Metrics
         detector = AnomalyDetector()
         anomalies = detector.detect_anomalies(records)
         severity_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0}
@@ -93,7 +87,6 @@ def update_finops_metrics() -> None:
         for sev, count in severity_counts.items():
             FINOPS_ANOMALIES_GAUGE.labels(severity=sev).set(count)
 
-        # Update Potential Savings Metrics
         rightsizing = RightsizingEngine()
         recs = rightsizing.generate_recommendations(records)
 

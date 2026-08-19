@@ -1,7 +1,4 @@
-"""
-Pydantic response models for the FinOps REST API.
-Provides typed OpenAPI schemas for every public endpoint.
-"""
+"""Pydantic response models for the API endpoints."""
 
 from pydantic import BaseModel
 

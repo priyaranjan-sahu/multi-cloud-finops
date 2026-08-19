@@ -1,7 +1,4 @@
-"""
-Rightsizing Recommendations CLI
-Runs multi-cloud compute, storage, and container waste analysis.
-"""
+"""Generate rightsizing recommendations from the command line."""
 
 import argparse
 
@@ -10,26 +7,25 @@ from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_rightsizing_analysis(days: int = 30) -> dict:
-    print(f"⚡ Running {days}-day Multi-Cloud Rightsizing & Waste Vector Analysis...")
+    print(f"Running {days}-day rightsizing and waste analysis...")
     connector = MockTelemetryConnector(days=days)
     records = connector.fetch_cost_data()
 
     engine = RightsizingEngine()
     results = engine.generate_recommendations(records)
 
-    print(f"\n💡 Current Monthly Spend: ${results['total_current_monthly_spend_usd']:,.2f}")
+    print(f"\nCurrent monthly spend: ${results['total_current_monthly_spend_usd']:,.2f}")
     print(
-        f"💰 Potential Monthly Savings: ${results['total_potential_monthly_savings_usd']:,.2f} "
+        f"Potential monthly savings: ${results['total_potential_monthly_savings_usd']:,.2f} "
         f"({results['potential_savings_percentage']}%)"
     )
-    print("\nActionable Recommendations:")
+    print("\nRecommendations:")
     for rec in results["recommendations"]:
         print(
             f"   [{rec['id']}] {rec['provider']} | {rec['category']}: {rec['action']} -> "
-            f"Save ${rec['estimated_monthly_savings_usd']}/mo"
+            f"save ${rec['estimated_monthly_savings_usd']}/mo"
         )
 
-    print("\n✅ Rightsizing Recommendations execution completed successfully.")
     return results
 
 

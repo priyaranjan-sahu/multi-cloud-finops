@@ -1,7 +1,7 @@
-"""
-Mock Telemetry Generator Connector
-Generates realistic FOCUS 1.0 compliant multi-cloud cost data with embedded anomalies
-and stable resource identities across the observation window.
+"""Deterministic synthetic cost telemetry generator.
+
+Emits FOCUS records with embedded anomalies and stable resource identities
+across the observation window.
 """
 
 import random

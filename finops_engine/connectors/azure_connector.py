@@ -1,8 +1,4 @@
-"""
-Azure Cost Management Connector
-Fetches Azure subscription cost telemetry via the Cost Management query API
-and maps it into FOCUS 1.0 format.
-"""
+"""Azure Cost Management connector."""
 
 import logging
 from datetime import datetime, timedelta, timezone

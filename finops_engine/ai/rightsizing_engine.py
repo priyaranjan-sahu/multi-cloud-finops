@@ -1,15 +1,7 @@
-"""
-Rightsizing & Cloud Waste Optimization Engine
-Identifies multi-cloud resource inefficiencies across five waste vectors and
-computes actionable recommendations with estimated monthly savings, all
-derived from the actual FOCUS telemetry provided.
+"""Rightsizing recommendations derived from FOCUS telemetry.
 
-Waste vectors analyzed:
-  1. Underutilized / unattached storage
-  2. Oversized compute (cost-per-usage outliers)
-  3. Spot / preemptible-eligible compute workloads
-  4. Kubernetes pod over-allocation
-  5. Commitment coverage gaps on steady-state spend
+Flags storage, compute, container, and commitment spend that could be
+reduced, with estimated monthly savings for each recommendation.
 """
 
 from typing import Any
@@ -100,7 +92,7 @@ class RightsizingEngine:
                 }
             )
 
-        # Vector 1: storage lifecycle / deletion
+        # storage lifecycle / deletion
         for _, row in storage_rows.iterrows():
             cost = float(row["billed_cost"])
             usage = float(row["usage_quantity"])
@@ -127,7 +119,7 @@ class RightsizingEngine:
                     f"Medium ({usage:.1f} usage units reported)",
                 )
 
-        # Vectors 2 & 3: compute rightsizing and spot eligibility
+        # compute rightsizing and spot eligibility
         for _, row in compute_rows.iterrows():
             cost = float(row["billed_cost"])
             cpu = float(row["cost_per_usage"])
@@ -154,7 +146,7 @@ class RightsizingEngine:
                     "Medium (steady but interruptible workload profile)",
                 )
 
-        # Vector 4: Kubernetes pod over-allocation
+        # Kubernetes pod over-allocation
         for _, row in container_rows.iterrows():
             cost = float(row["billed_cost"])
             if cost >= self.high_cost_threshold_usd:
@@ -169,7 +161,7 @@ class RightsizingEngine:
                     "Medium (request-to-usage ratio above 2.0)",
                 )
 
-        # Vector 5: commitment coverage for the largest steady compute spend
+        # commitment coverage for the largest steady compute spend
         if not compute_rows.empty:
             top = compute_rows.sort_values("billed_cost", ascending=False).iloc[0]
             cost = float(top["billed_cost"])

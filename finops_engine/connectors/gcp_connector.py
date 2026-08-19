@@ -1,8 +1,4 @@
-"""
-GCP Billing Connector
-Fetches Google Cloud cost telemetry from the BigQuery billing export
-and normalizes it into FOCUS 1.0 format.
-"""
+"""GCP BigQuery billing export connector."""
 
 import logging
 from datetime import datetime, timedelta, timezone
