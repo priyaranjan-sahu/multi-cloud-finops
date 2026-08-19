@@ -5,8 +5,8 @@ Executes the Isolation Forest + Z-Score detector on FOCUS multi-cloud telemetry.
 
 import argparse
 
-from finops_engine.connectors import MockTelemetryConnector
 from finops_engine.ai import AnomalyDetector
+from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_anomaly_detection(days: int = 90, contamination: float = 0.05, z_threshold: float = 2.0) -> list:

@@ -6,22 +6,29 @@ cost data, plus the mock connector used for demos and tests.
 """
 
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Tuple
+from typing import Protocol
 
-from .aws_connector import AWSConnector
-from .gcp_connector import GCPConnector
-from .azure_connector import AzureConnector
-from .mock_connector import MockTelemetryConnector
 from finops_engine.schema.focus_spec import FocusRecord
 
+from .aws_connector import AWSConnector
+from .azure_connector import AzureConnector
+from .gcp_connector import GCPConnector
+from .mock_connector import MockTelemetryConnector
+
 __all__ = ["AWSConnector", "GCPConnector", "AzureConnector", "MockTelemetryConnector", "fetch_multicloud_cost"]
+
+
+class CostConnector(Protocol):
+    """Structural type shared by every live cloud connector."""
+
+    def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]: ...
 
 
 def fetch_multicloud_cost(
     use_mock: bool = True,
     days: int = 30,
     allow_fallback: bool = False,
-) -> Tuple[List[FocusRecord], str]:
+) -> tuple[list[FocusRecord], str]:
     """
     Fetch cost telemetry across all configured cloud providers.
 
@@ -40,8 +47,9 @@ def fetch_multicloud_cost(
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
 
-    records: List[FocusRecord] = []
-    for connector in (AWSConnector(), GCPConnector(), AzureConnector()):
+    connectors: list[CostConnector] = [AWSConnector(), GCPConnector(), AzureConnector()]
+    records: list[FocusRecord] = []
+    for connector in connectors:
         records.extend(connector.fetch_cost_data(start_date=start_date, end_date=end_date))
 
     if not records:

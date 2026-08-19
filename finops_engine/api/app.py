@@ -8,23 +8,13 @@ import asyncio
 import contextlib
 import logging
 from contextlib import asynccontextmanager
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from finops_engine import __version__
-from finops_engine.config import settings
-from finops_engine.connectors import fetch_multicloud_cost
-from finops_engine.schema import normalize_to_focus_dataframe
 from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
-from finops_engine.exporter import (
-    CONTENT_TYPE_LATEST,
-    FINOPS_REQUEST_COUNTER,
-    get_prometheus_metrics_bytes,
-    refresh_finops_metrics_loop,
-)
 from finops_engine.api.models import (
     AnomalyDetectionResponse,
     CostSummaryResponse,
@@ -33,6 +23,15 @@ from finops_engine.api.models import (
     HealthResponse,
     RightsizingResponse,
 )
+from finops_engine.config import settings
+from finops_engine.connectors import fetch_multicloud_cost
+from finops_engine.exporter import (
+    CONTENT_TYPE_LATEST,
+    FINOPS_REQUEST_COUNTER,
+    get_prometheus_metrics_bytes,
+    refresh_finops_metrics_loop,
+)
+from finops_engine.schema import normalize_to_focus_dataframe
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("finops.api")
@@ -82,7 +81,7 @@ async def require_api_key(request: Request, call_next):
     return await call_next(request)
 
 
-def _get_records(use_mock: Optional[bool], days: int = 30):
+def _get_records(use_mock: bool | None, days: int = 30):
     """Fetches records and returns (records, source), failing closed on empty live data."""
     mock_mode = settings.mock_mode if use_mock is None else use_mock
     try:
@@ -109,7 +108,7 @@ def root():
 @app.get("/api/v1/costs/summary", response_model=CostSummaryResponse)
 def get_cost_summary(
     days: int = Query(default=30, ge=1, le=365),
-    use_mock: Optional[bool] = None,
+    use_mock: bool | None = None,
 ):
     """Aggregate multi-cloud spend by Provider, Service, and Region."""
     FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/costs/summary").inc()
@@ -133,7 +132,7 @@ def get_cost_summary(
 @app.get("/api/v1/costs/focus-export", response_model=FocusExportResponse)
 def export_focus_telemetry(
     days: int = Query(default=30, ge=1, le=90),
-    use_mock: Optional[bool] = None,
+    use_mock: bool | None = None,
     limit: int = Query(default=1000, ge=1, le=10000),
     offset: int = Query(default=0, ge=0),
 ):
@@ -153,7 +152,7 @@ def export_focus_telemetry(
 def detect_anomalies(
     days: int = Query(default=60, ge=7, le=180),
     contamination: float = Query(default=0.05, ge=0.001, le=0.5),
-    use_mock: Optional[bool] = None,
+    use_mock: bool | None = None,
 ):
     """Trigger AI anomaly detection on cloud cost telemetry."""
     FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/anomalies/detect").inc()
@@ -172,7 +171,7 @@ def detect_anomalies(
 @app.get("/api/v1/forecast/predict", response_model=ForecastResponse)
 def predict_costs(
     forecast_days: int = Query(default=30, ge=7, le=90),
-    use_mock: Optional[bool] = None,
+    use_mock: bool | None = None,
 ):
     """Run AI time-series forecasting model to project future cloud costs."""
     FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/forecast/predict").inc()
@@ -184,7 +183,7 @@ def predict_costs(
 
 
 @app.get("/api/v1/recommendations/rightsizing", response_model=RightsizingResponse)
-def get_rightsizing_recommendations(use_mock: Optional[bool] = None):
+def get_rightsizing_recommendations(use_mock: bool | None = None):
     """Fetch actionable rightsizing and waste reduction recommendations."""
     FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/recommendations/rightsizing").inc()
     records, source = _get_records(use_mock, 30)

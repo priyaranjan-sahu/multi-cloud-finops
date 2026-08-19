@@ -10,15 +10,24 @@ sets are cleared each cycle to avoid stale series.
 import asyncio
 import logging
 import time
+from typing import TypedDict
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 
-from finops_engine.config import settings
-from finops_engine.connectors import fetch_multicloud_cost
 from finops_engine.ai.anomaly_detector import AnomalyDetector
 from finops_engine.ai.rightsizing_engine import RightsizingEngine
+from finops_engine.config import settings
+from finops_engine.connectors import fetch_multicloud_cost
 
 logger = logging.getLogger("finops.exporter")
+
+__all__ = [
+    "CONTENT_TYPE_LATEST",
+    "FINOPS_REQUEST_COUNTER",
+    "get_prometheus_metrics_bytes",
+    "refresh_finops_metrics_loop",
+    "update_finops_metrics",
+]
 
 # Prometheus Metrics Definitions
 FINOPS_COST_GAUGE = Gauge(
@@ -45,7 +54,13 @@ FINOPS_REQUEST_COUNTER = Counter(
     ["endpoint"],
 )
 
-_metrics_cache = {"content": None, "last_refresh": 0.0}
+
+class MetricsCache(TypedDict):
+    content: bytes | None
+    last_refresh: float
+
+
+_metrics_cache: MetricsCache = {"content": None, "last_refresh": 0.0}
 
 
 def update_finops_metrics() -> None:
@@ -101,7 +116,9 @@ def get_prometheus_metrics_bytes() -> bytes:
     """Returns the latest cached Prometheus metrics payload for HTTP handlers."""
     if _metrics_cache["content"] is None:
         _refresh_cached_metrics()
-    return _metrics_cache["content"]
+    content = _metrics_cache["content"]
+    assert content is not None
+    return content
 
 
 async def refresh_finops_metrics_loop(interval_seconds: int = 15) -> None:

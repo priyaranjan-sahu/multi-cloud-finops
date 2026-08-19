@@ -4,11 +4,10 @@ Generates realistic FOCUS 1.0 compliant multi-cloud cost data with embedded anom
 and stable resource identities across the observation window.
 """
 
-from datetime import datetime, timedelta, timezone
 import random
-from typing import List
+from datetime import datetime, timedelta, timezone
 
-from finops_engine.schema.focus_spec import FocusRecord, CloudProvider, ChargeCategory
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
 
 
 def _categorize_service(service: str) -> str:
@@ -30,8 +29,8 @@ class MockTelemetryConnector:
         self.days = days
         self._rng = random.Random(seed)
 
-    def fetch_cost_data(self) -> List[FocusRecord]:
-        records: List[FocusRecord] = []
+    def fetch_cost_data(self) -> list[FocusRecord]:
+        records: list[FocusRecord] = []
         end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=self.days)
 
@@ -77,7 +76,9 @@ class MockTelemetryConnector:
                             usage_unit="Hours",
                             service_name=service,
                             service_category=_categorize_service(service),
-                            region_id="us-east-1" if provider == CloudProvider.AWS else ("us-central1" if provider == CloudProvider.GCP else "eastus"),
+                            region_id="us-east-1"
+                            if provider == CloudProvider.AWS
+                            else ("us-central1" if provider == CloudProvider.GCP else "eastus"),
                             sub_account_id=sub_acc,
                             resource_id=resource_id,
                             billing_period_start=current_dt,

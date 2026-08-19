@@ -6,7 +6,7 @@ forecast horizon.
 """
 
 from datetime import timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ class CostForecaster:
         self.forecast_days = forecast_days
         self.model = LinearRegression()
 
-    def predict_future_cost(self, records: List[FocusRecord]) -> Dict[str, Any]:
+    def predict_future_cost(self, records: list[FocusRecord]) -> dict[str, Any]:
         """Projects future spend trend with widening 95% prediction intervals."""
         empty_result = {
             "forecast_days": self.forecast_days,
@@ -64,10 +64,10 @@ class CostForecaster:
 
         predictions = self.model.predict(future_indices.reshape(-1, 1))
 
-        forecast_list: List[Dict[str, Any]] = []
+        forecast_list: list[dict[str, Any]] = []
         total_projected = 0.0
 
-        for idx, (day_idx, pred) in enumerate(zip(future_indices, predictions)):
+        for idx, (day_idx, pred) in enumerate(zip(future_indices, predictions, strict=False)):
             # Prediction interval for the mean response at a given horizon.
             leverage = 1.0 / n + ((day_idx - x_mean) ** 2) / x_var if x_var > 0 else 0.0
             margin = t_crit * np.sqrt(mse * (1.0 + leverage))
@@ -90,7 +90,9 @@ class CostForecaster:
         return {
             "forecast_days": self.forecast_days,
             "total_projected_spend_usd": round(total_projected, 2),
-            "average_daily_projected_usd": round(total_projected / self.forecast_days, 2) if self.forecast_days > 0 else 0.0,
+            "average_daily_projected_usd": round(total_projected / self.forecast_days, 2)
+            if self.forecast_days > 0
+            else 0.0,
             "confidence_level": "95%",
             "forecast": forecast_list,
         }

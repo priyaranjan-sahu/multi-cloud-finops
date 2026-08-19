@@ -26,7 +26,9 @@ def analyze_spot_opportunities(days: int = 30, discount_pct: float = 0.65) -> di
 
     print(f"✅ Evaluated {len(compute)} compute workload records across AWS, GCP, and Azure.")
     print(f"💡 Total Compute On-Demand Spend: ${total_compute:,.2f}")
-    print(f"💰 Estimated Savings via Spot/Preemptible Migration ({int(discount_pct * 100)}% discount): ${savings:,.2f}/mo")
+    print(
+        f"💰 Estimated Savings via Spot/Preemptible Migration ({int(discount_pct * 100)}% discount): ${savings:,.2f}/mo"
+    )
     print(f"📊 Spend by Provider: {by_provider}")
 
     return {

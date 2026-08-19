@@ -5,9 +5,8 @@ Fetches AWS cost telemetry and maps it into FOCUS 1.0 normalized records.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
 
-from finops_engine.schema.focus_spec import FocusRecord, CloudProvider, ChargeCategory
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
 
 logger = logging.getLogger("finops.connectors.aws")
 
@@ -16,7 +15,7 @@ class AWSConnector:
     def __init__(self, region_name: str = "us-east-1"):
         self.region_name = region_name
 
-    def fetch_cost_data(self, start_date: str = None, end_date: str = None) -> List[FocusRecord]:
+    def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]:
         """Fetches AWS Cost Explorer metrics and maps to FOCUS schema."""
         if not start_date or not end_date:
             end_dt = datetime.now(timezone.utc)
@@ -24,7 +23,7 @@ class AWSConnector:
             start_date = start_dt.strftime("%Y-%m-%d")
             end_date = end_dt.strftime("%Y-%m-%d")
 
-        records: List[FocusRecord] = []
+        records: list[FocusRecord] = []
         try:
             import boto3
 

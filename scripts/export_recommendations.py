@@ -7,11 +7,13 @@ import argparse
 import json
 import os
 
-from finops_engine.connectors import MockTelemetryConnector
 from finops_engine.ai import RightsizingEngine
+from finops_engine.connectors import MockTelemetryConnector
 
 
-def export_rightsizing_recommendations(output_path: str = "output/rightsizing_recommendations.json", days: int = 30) -> str:
+def export_rightsizing_recommendations(
+    output_path: str = "output/rightsizing_recommendations.json", days: int = 30
+) -> str:
     connector = MockTelemetryConnector(days=days)
     records = connector.fetch_cost_data()
     engine = RightsizingEngine()

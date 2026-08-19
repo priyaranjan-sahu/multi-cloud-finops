@@ -3,8 +3,6 @@ Pydantic response models for the FinOps REST API.
 Provides typed OpenAPI schemas for every public endpoint.
 """
 
-from typing import Dict, List
-
 from pydantic import BaseModel
 
 from finops_engine.schema.focus_spec import FocusRecord
@@ -22,8 +20,8 @@ class HealthResponse(BaseModel):
 class CostSummaryResponse(BaseModel):
     period_days: int
     total_billed_cost_usd: float
-    spend_by_provider: Dict[str, float]
-    spend_by_service: Dict[str, float]
+    spend_by_provider: dict[str, float]
+    spend_by_service: dict[str, float]
     total_records_processed: int
     data_source: str
 
@@ -32,7 +30,7 @@ class FocusExportResponse(BaseModel):
     focus_version: str
     record_count: int
     data_source: str
-    records: List[FocusRecord]
+    records: list[FocusRecord]
 
 
 class AnomalyItem(BaseModel):
@@ -51,7 +49,7 @@ class AnomalyDetectionResponse(BaseModel):
     analyzed_days: int
     anomalies_detected_count: int
     data_source: str
-    anomalies: List[AnomalyItem]
+    anomalies: list[AnomalyItem]
 
 
 class ForecastItem(BaseModel):
@@ -67,7 +65,7 @@ class ForecastResponse(BaseModel):
     average_daily_projected_usd: float
     confidence_level: str
     data_source: str
-    forecast: List[ForecastItem]
+    forecast: list[ForecastItem]
 
 
 class RightsizingRecommendation(BaseModel):
@@ -89,4 +87,4 @@ class RightsizingResponse(BaseModel):
     potential_savings_percentage: float
     recommendations_count: int
     data_source: str
-    recommendations: List[RightsizingRecommendation]
+    recommendations: list[RightsizingRecommendation]

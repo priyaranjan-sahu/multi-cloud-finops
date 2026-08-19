@@ -6,9 +6,8 @@ and maps it into FOCUS 1.0 format.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
 
-from finops_engine.schema.focus_spec import FocusRecord, CloudProvider, ChargeCategory
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
 
 logger = logging.getLogger("finops.connectors.azure")
 
@@ -17,7 +16,7 @@ class AzureConnector:
     def __init__(self, subscription_id: str = "default-azure-subscription"):
         self.subscription_id = subscription_id
 
-    def fetch_cost_data(self, start_date: str = None, end_date: str = None) -> List[FocusRecord]:
+    def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]:
         """Fetches Azure Cost Management metrics and maps to FOCUS schema."""
         if not start_date or not end_date:
             end_dt = datetime.now(timezone.utc)
@@ -25,7 +24,7 @@ class AzureConnector:
             start_date = start_dt.strftime("%Y-%m-%d")
             end_date = end_dt.strftime("%Y-%m-%d")
 
-        records: List[FocusRecord] = []
+        records: list[FocusRecord] = []
         try:
             from azure.identity import DefaultAzureCredential
             from azure.mgmt.costmanagement import CostManagementClient
@@ -57,7 +56,7 @@ class AzureConnector:
             columns = [c["name"] for c in result.columns] if result.columns else []
 
             for row in result.rows or []:
-                values = dict(zip(columns, row))
+                values = dict(zip(columns, row, strict=False))
                 date_str = values.get("date")
                 time_start = datetime.strptime(str(date_str), "%Y-%m-%d")
                 time_end = time_start + timedelta(days=1)

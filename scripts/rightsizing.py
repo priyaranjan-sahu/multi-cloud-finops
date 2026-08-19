@@ -5,8 +5,8 @@ Runs multi-cloud compute, storage, and container waste analysis.
 
 import argparse
 
-from finops_engine.connectors import MockTelemetryConnector
 from finops_engine.ai import RightsizingEngine
+from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_rightsizing_analysis(days: int = 30) -> dict:
@@ -24,7 +24,10 @@ def run_rightsizing_analysis(days: int = 30) -> dict:
     )
     print("\nActionable Recommendations:")
     for rec in results["recommendations"]:
-        print(f"   [{rec['id']}] {rec['provider']} | {rec['category']}: {rec['action']} -> Save ${rec['estimated_monthly_savings_usd']}/mo")
+        print(
+            f"   [{rec['id']}] {rec['provider']} | {rec['category']}: {rec['action']} -> "
+            f"Save ${rec['estimated_monthly_savings_usd']}/mo"
+        )
 
     print("\n✅ Rightsizing Recommendations execution completed successfully.")
     return results

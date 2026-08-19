@@ -6,19 +6,18 @@ and normalizes it into FOCUS 1.0 format.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import List
 
-from finops_engine.schema.focus_spec import FocusRecord, CloudProvider, ChargeCategory
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
 
 logger = logging.getLogger("finops.connectors.gcp")
 
 
 class GCPConnector:
-    def __init__(self, project_id: str = "default-gcp-project", billing_table: str = None):
+    def __init__(self, project_id: str = "default-gcp-project", billing_table: str | None = None):
         self.project_id = project_id
         self.billing_table = billing_table or f"{project_id}.billing.gcp_billing_export_v1"
 
-    def fetch_cost_data(self, start_date: str = None, end_date: str = None) -> List[FocusRecord]:
+    def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]:
         """Fetches GCP billing metrics from the BigQuery export and maps to FOCUS schema."""
         if not start_date or not end_date:
             end_dt = datetime.now(timezone.utc)
@@ -26,7 +25,7 @@ class GCPConnector:
             start_date = start_dt.strftime("%Y-%m-%d")
             end_date = end_dt.strftime("%Y-%m-%d")
 
-        records: List[FocusRecord] = []
+        records: list[FocusRecord] = []
         try:
             from google.cloud import bigquery
 

@@ -5,8 +5,8 @@ Executes time-series predictive modeling on multi-cloud spend trends.
 
 import argparse
 
-from finops_engine.connectors import MockTelemetryConnector
 from finops_engine.ai import CostForecaster
+from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_cost_prediction(forecast_days: int = 30, history_days: int = 60) -> dict:

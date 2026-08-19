@@ -12,9 +12,7 @@ Waste vectors analyzed:
   5. Commitment coverage gaps on steady-state spend
 """
 
-from typing import Any, Dict, List
-
-import pandas as pd
+from typing import Any
 
 from finops_engine.schema.focus_spec import FocusRecord, normalize_to_focus_dataframe
 
@@ -36,7 +34,7 @@ class RightsizingEngine:
         self.high_cost_threshold_usd = high_cost_threshold_usd
         self.max_recommendations = max_recommendations
 
-    def generate_recommendations(self, records: List[FocusRecord]) -> Dict[str, Any]:
+    def generate_recommendations(self, records: list[FocusRecord]) -> dict[str, Any]:
         """Analyzes a multi-cloud footprint and returns data-driven recommendations."""
         df = normalize_to_focus_dataframe(records)
         empty_result = {
@@ -70,7 +68,7 @@ class RightsizingEngine:
 
         median_cost_per_usage = compute_rows["cost_per_usage"].median() if not compute_rows.empty else 0.0
 
-        recommendations: List[Dict[str, Any]] = []
+        recommendations: list[dict[str, Any]] = []
         rec_id = 0
 
         def add_recommendation(
