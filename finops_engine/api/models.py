@@ -22,6 +22,7 @@ class CostSummaryResponse(BaseModel):
     total_billed_cost_usd: float
     spend_by_provider: dict[str, float]
     spend_by_service: dict[str, float]
+    spend_by_region: dict[str, float]
     total_records_processed: int
     data_source: str
 

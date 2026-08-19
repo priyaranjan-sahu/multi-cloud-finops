@@ -6,6 +6,7 @@ and rightsizing, with typed response models and optional API-key authentication.
 
 import asyncio
 import contextlib
+import hmac
 import logging
 from contextlib import asynccontextmanager
 
@@ -57,6 +58,34 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+_original_openapi = app.openapi
+
+
+def _apply_api_key_security() -> dict:
+    """Injects the API-key security scheme into OpenAPI when auth is configured.
+
+    Only ``/api/*`` routes are marked as requiring the key; public routes such
+    as ``/`` and ``/metrics`` stay documented as unauthenticated.
+    """
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = _original_openapi()
+    if settings.api_key:
+        schema.setdefault("components", {})["securitySchemes"] = {
+            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
+        }
+        for path, methods in schema.get("paths", {}).items():
+            if path.startswith("/api/"):
+                for operation in methods.values():
+                    if "security" not in operation:
+                        operation["security"] = [{"ApiKeyAuth": []}]
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _apply_api_key_security  # type: ignore[method-assign]
+
 # CORS: credentials are only allowed when an explicit origin allow-list is configured.
 origins = settings.cors_origins or ["*"]
 app.add_middleware(
@@ -72,8 +101,8 @@ app.add_middleware(
 async def require_api_key(request: Request, call_next):
     """Enforces an X-API-Key header on /api/* routes when FINOP_API_KEY is set."""
     if settings.api_key and request.url.path.startswith("/api/"):
-        provided = request.headers.get("X-API-Key")
-        if provided != settings.api_key:
+        provided = request.headers.get("X-API-Key", "")
+        if not hmac.compare_digest(provided, settings.api_key):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"detail": "Invalid or missing API key"},
@@ -118,12 +147,14 @@ def get_cost_summary(
     total_spend = float(df["billed_cost"].sum()) if not df.empty else 0.0
     by_provider = df.groupby("provider_name")["billed_cost"].sum().round(2).to_dict() if not df.empty else {}
     by_service = df.groupby("service_name")["billed_cost"].sum().round(2).to_dict() if not df.empty else {}
+    by_region = df.groupby("region_id")["billed_cost"].sum().round(2).to_dict() if not df.empty else {}
 
     return {
         "period_days": days,
         "total_billed_cost_usd": round(total_spend, 2),
         "spend_by_provider": by_provider,
         "spend_by_service": by_service,
+        "spend_by_region": by_region,
         "total_records_processed": len(records),
         "data_source": source,
     }
