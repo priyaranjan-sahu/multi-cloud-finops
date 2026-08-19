@@ -7,19 +7,7 @@ and stable resource identities across the observation window.
 import random
 from datetime import datetime, timedelta, timezone
 
-from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
-
-
-def _categorize_service(service: str) -> str:
-    """Maps a provider service name to a coarse FOCUS service category."""
-    lowered = service.lower()
-    if "storage" in lowered or "s3" in lowered or "blob" in lowered:
-        return "Storage"
-    if any(k in lowered for k in ("database", "sql", "rds", "bigquery")):
-        return "Database"
-    if any(k in lowered for k in ("eks", "gke", "aks", "kubernetes")):
-        return "Container"
-    return "Compute"
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord, categorize_service
 
 
 class MockTelemetryConnector:
@@ -75,7 +63,7 @@ class MockTelemetryConnector:
                             usage_quantity=round(usage, 2),
                             usage_unit="Hours",
                             service_name=service,
-                            service_category=_categorize_service(service),
+                            service_category=categorize_service(service),
                             region_id="us-east-1"
                             if provider == CloudProvider.AWS
                             else ("us-central1" if provider == CloudProvider.GCP else "eastus"),

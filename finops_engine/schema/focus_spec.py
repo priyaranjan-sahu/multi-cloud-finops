@@ -24,6 +24,54 @@ class CloudProvider(str, Enum):
     AZURE = "Azure"
 
 
+def categorize_service(service: str) -> str:
+    """Map a cloud service name to a coarse FOCUS service category.
+
+    Shared by every connector (mock, AWS, GCP, Azure) so that live telemetry
+    and synthetic telemetry produce identical categorization. This keeps the
+    rightsizing engine's waste-vector detection (storage / compute /
+    container / database / network) consistent across providers.
+    """
+    lowered = service.lower()
+    if any(key in lowered for key in ("storage", "s3", "blob", "disk")):
+        return "Storage"
+    if any(
+        key in lowered
+        for key in (
+            "database",
+            "sql",
+            "rds",
+            "bigquery",
+            "cosmos",
+            "dynamodb",
+            "spanner",
+            "redshift",
+            "elasticache",
+            "cache",
+        )
+    ):
+        return "Database"
+    if any(key in lowered for key in ("eks", "gke", "aks", "kubernetes", "ecs", "container")):
+        return "Container"
+    if any(
+        key in lowered
+        for key in (
+            "vpc",
+            "vnet",
+            "cdn",
+            "cloudfront",
+            "load balancer",
+            "network",
+            "route 53",
+            "firewall",
+            "nat",
+            "gateway",
+        )
+    ):
+        return "Network"
+    return "Compute"
+
+
 class FocusRecord(BaseModel):
     """Represents a single FOCUS 1.0 compliant billing record."""
 

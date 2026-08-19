@@ -6,7 +6,7 @@ Fetches AWS cost telemetry and maps it into FOCUS 1.0 normalized records.
 import logging
 from datetime import datetime, timedelta, timezone
 
-from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord, categorize_service
 
 logger = logging.getLogger("finops.connectors.aws")
 
@@ -36,8 +36,6 @@ class AWSConnector:
             )
 
             for result in response.get("ResultsByTime", []):
-                time_start = datetime.strptime(result["TimePeriod"]["Start"], "%Y-%m-%d")
-                time_end = datetime.strptime(result["TimePeriod"]["End"], "%Y-%m-%d")
                 for group in result.get("Groups", []):
                     service_name = group["Keys"][0]
                     metrics = group["Metrics"]
@@ -45,24 +43,33 @@ class AWSConnector:
                     effective = float(metrics.get("AmortizedCost", {}).get("Amount", billed))
                     usage_qty = float(metrics.get("UsageQuantity", {}).get("Amount", 0.0))
 
-                    records.append(
-                        FocusRecord(
-                            provider_name=CloudProvider.AWS,
-                            publisher_name="Amazon Web Services",
-                            charge_category=ChargeCategory.USAGE,
-                            billed_cost=round(billed, 4),
-                            effective_cost=round(effective, 4),
-                            currency="USD",
-                            usage_quantity=round(usage_qty, 2),
-                            usage_unit="Hours",
-                            service_name=service_name,
-                            service_category="Compute" if "EC2" in service_name else "Storage",
-                            region_id=self.region_name,
-                            sub_account_id="aws-account-main",
-                            billing_period_start=time_start,
-                            billing_period_end=time_end,
+                    try:
+                        time_start = datetime.strptime(result["TimePeriod"]["Start"], "%Y-%m-%d").replace(
+                            tzinfo=timezone.utc
                         )
-                    )
+                        time_end = datetime.strptime(result["TimePeriod"]["End"], "%Y-%m-%d").replace(
+                            tzinfo=timezone.utc
+                        )
+                        records.append(
+                            FocusRecord(
+                                provider_name=CloudProvider.AWS,
+                                publisher_name="Amazon Web Services",
+                                charge_category=ChargeCategory.USAGE,
+                                billed_cost=round(billed, 4),
+                                effective_cost=round(effective, 4),
+                                currency="USD",
+                                usage_quantity=round(usage_qty, 2),
+                                usage_unit="Hours",
+                                service_name=service_name,
+                                service_category=categorize_service(service_name),
+                                region_id=self.region_name,
+                                sub_account_id="aws-account-main",
+                                billing_period_start=time_start,
+                                billing_period_end=time_end,
+                            )
+                        )
+                    except (TypeError, ValueError) as exc:
+                        logger.warning("Skipping malformed AWS record for %s: %s", service_name, exc)
         except Exception as e:
             logger.warning("AWS Cost Explorer call failed or credentials not present (%s).", e)
 

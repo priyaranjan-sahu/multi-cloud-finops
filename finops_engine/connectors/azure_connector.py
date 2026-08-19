@@ -7,7 +7,7 @@ and maps it into FOCUS 1.0 format.
 import logging
 from datetime import datetime, timedelta, timezone
 
-from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord
+from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord, categorize_service
 
 logger = logging.getLogger("finops.connectors.azure")
 
@@ -56,31 +56,34 @@ class AzureConnector:
             columns = [c["name"] for c in result.columns] if result.columns else []
 
             for row in result.rows or []:
-                values = dict(zip(columns, row, strict=False))
-                date_str = values.get("date")
-                time_start = datetime.strptime(str(date_str), "%Y-%m-%d")
-                time_end = time_start + timedelta(days=1)
-                billed = float(values.get("totalCost") or 0.0)
-                service_name = str(values.get("ServiceName") or "Unknown Service")
+                try:
+                    values = dict(zip(columns, row, strict=False))
+                    date_str = values.get("date")
+                    time_start = datetime.strptime(str(date_str), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    time_end = time_start + timedelta(days=1)
+                    billed = float(values.get("totalCost") or 0.0)
+                    service_name = str(values.get("ServiceName") or "Unknown Service")
 
-                records.append(
-                    FocusRecord(
-                        provider_name=CloudProvider.AZURE,
-                        publisher_name="Microsoft Azure",
-                        charge_category=ChargeCategory.USAGE,
-                        billed_cost=round(billed, 4),
-                        effective_cost=round(billed, 4),
-                        currency="USD",
-                        usage_quantity=0.0,
-                        usage_unit="Hours",
-                        service_name=service_name,
-                        service_category="Compute" if "Virtual Machines" in service_name else "Storage",
-                        region_id="global",
-                        sub_account_id=self.subscription_id,
-                        billing_period_start=time_start,
-                        billing_period_end=time_end,
+                    records.append(
+                        FocusRecord(
+                            provider_name=CloudProvider.AZURE,
+                            publisher_name="Microsoft Azure",
+                            charge_category=ChargeCategory.USAGE,
+                            billed_cost=round(billed, 4),
+                            effective_cost=round(billed, 4),
+                            currency="USD",
+                            usage_quantity=0.0,
+                            usage_unit="Hours",
+                            service_name=service_name,
+                            service_category=categorize_service(service_name),
+                            region_id="global",
+                            sub_account_id=self.subscription_id,
+                            billing_period_start=time_start,
+                            billing_period_end=time_end,
+                        )
                     )
-                )
+                except (TypeError, ValueError) as exc:
+                    logger.warning("Skipping malformed Azure record for %s: %s", service_name, exc)
         except Exception as e:
             logger.warning("Azure Cost Management query failed or credentials not present (%s).", e)
 
