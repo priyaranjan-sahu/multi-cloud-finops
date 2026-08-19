@@ -1,0 +1,75 @@
+# Deployment and Service for the Multi-Cloud FinOps API
+# Apply the full stack with: kubectl apply -f kubernetes/
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-cloud-finops-app
+  namespace: default
+  labels:
+    app: multi-cloud-finops-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: multi-cloud-finops-app
+  template:
+    metadata:
+      labels:
+        app: multi-cloud-finops-app
+    spec:
+      containers:
+        - name: multi-cloud-finops-app
+          image: multi-cloud-finops:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: FINOP_MOCK_MODE
+              value: "true"
+            - name: LOG_LEVEL
+              value: "INFO"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-cloud-finops-service
+  namespace: default
+spec:
+  selector:
+    app: multi-cloud-finops-app
+  ports:
+    - port: 8000
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: finops-prometheus
+  namespace: default
+spec:
+  ports:
+    - port: 9090
+      name: prometheus
+  selector:
+    app: prometheus

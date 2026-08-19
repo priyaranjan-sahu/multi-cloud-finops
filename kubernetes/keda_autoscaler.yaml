@@ -1,3 +1,9 @@
+# KEDA ScaledObject driving the multi-cloud-finops-app Deployment.
+# Triggers use true utilization ratios (pod usage / pod limits), not absolute values.
+#
+# Requires: KEDA installed in the cluster and Prometheus scraping the finops-engine
+# cAdvisor metrics. Apply after the Deployment in deployment.yaml.
+
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -13,13 +19,15 @@ spec:
   cooldownPeriod: 300
   pollingInterval: 15
   triggers:
-  - type: prometheus
-    metadata:
-      serverAddress: http://finops-prometheus.monitoring.svc:9090
-      query: sum(rate(container_cpu_usage_seconds_total{container="multi-cloud-finops-app"}[2m]))
-      threshold: '0.70'
-  - type: prometheus
-    metadata:
-      serverAddress: http://finops-prometheus.monitoring.svc:9090
-      query: sum(container_memory_working_set_bytes{container="multi-cloud-finops-app"}) / sum(machine_memory_bytes)
-      threshold: '0.80'
+    - type: prometheus
+      metadata:
+        serverAddress: http://finops-prometheus.default.svc:9090
+        # CPU utilization ratio (usage / quota) for the finops container
+        query: sum(rate(container_cpu_usage_seconds_total{container="multi-cloud-finops-app"}[2m])) / sum(container_spec_cpu_quota{container="multi-cloud-finops-app"} / container_spec_cpu_period{container="multi-cloud-finops-app"})
+        threshold: '0.70'
+    - type: prometheus
+      metadata:
+        serverAddress: http://finops-prometheus.default.svc:9090
+        # Memory utilization ratio (working set / limit) for the finops container
+        query: sum(container_memory_working_set_bytes{container="multi-cloud-finops-app"}) / sum(container_spec_memory_limit_bytes{container="multi-cloud-finops-app"})
+        threshold: '0.80'

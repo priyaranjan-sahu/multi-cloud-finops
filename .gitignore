@@ -25,6 +25,8 @@ env/
 .coverage
 coverage.xml
 htmlcov/
+.ruff_cache/
+.mypy_cache/
 
 # IDE
 .vscode/
@@ -47,6 +49,8 @@ infra/*.tfstate
 infra/*.tfstate.backup
 infra/.terraform.lock.hcl
 infra/crash.log
+infra/tfplan.*
+infra/terraform.tfvars
 
 # Output artifacts
 output/
