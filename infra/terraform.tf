@@ -9,23 +9,40 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
   }
+
+  # Uncomment for collaborative, locked remote state:
+  # backend "s3" {
+  #   bucket         = var.state_bucket
+  #   key            = "finops/terraform.tfstate"
+  #   region         = var.state_region
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-lock"
+  # }
 }
 
-variable "environment" {
-  type    = string
-  default = "production"
+provider "aws" {
+  region = var.region
+}
+
+provider "google" {
+  project = var.gcp_project
+  region  = var.gcp_region
+}
+
+provider "azurerm" {
+  features {}
 }
 
 # AWS FinOps Telemetry Bucket
 resource "aws_s3_bucket" "finops_logs" {
-  bucket        = "multi-cloud-finops-telemetry-bucket"
+  bucket        = var.bucket_name
   force_destroy = true
 
   tags = {
@@ -44,20 +61,32 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "finops_s3_encrypt
   }
 }
 
+resource "aws_s3_bucket_versioning" "finops_logs_versioning" {
+  bucket = aws_s3_bucket.finops_logs.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 # GCP FinOps BigQuery Export Storage Bucket
 resource "google_storage_bucket" "finops_gcs" {
-  name          = "multi-cloud-finops-gcs-billing"
-  location      = "US"
+  name          = var.gcs_bucket_name
+  location      = var.gcp_region
   storage_class = "STANDARD"
   force_destroy = true
 
   uniform_bucket_level_access = true
+
+  versioning {
+    enabled = true
+  }
 }
 
 # Azure Cost Management Export Storage Account
 resource "azurerm_resource_group" "finops_rg" {
-  name     = "rg-finops-production"
-  location = "East US"
+  name     = "${var.azure_resource_group}-${var.environment}"
+  location = var.azure_location
 }
 
 resource "azurerm_storage_account" "finops_azure_sa" {

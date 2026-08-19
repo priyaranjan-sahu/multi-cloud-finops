@@ -1,11 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Deploying Multi-Cloud FinOps Infrastructure..."
+# Deploys the Multi-Cloud FinOps infrastructure with Terraform.
+# Usage: ./deploy.sh [workspace]
 
-# Initialize Terraform
-terraform init
+WORKSPACE="${1:-production}"
+ENV_FILE=".terraform/environment"
 
-# Apply Terraform configuration
-terraform apply -auto-approve
+echo "==> Deploying Multi-Cloud FinOps Infrastructure (workspace: ${WORKSPACE})"
 
-echo "Deployment complete!"
+# Initialize Terraform (downloads providers, configures backend)
+terraform init -upgrade
+
+# Create/select a dedicated workspace per environment
+if [[ ! -f "${ENV_FILE}" || "$(cat "${ENV_FILE}")" != "${WORKSPACE}" ]]; then
+  terraform workspace new "${WORKSPACE}" 2>/dev/null || terraform workspace select "${WORKSPACE}"
+else
+  terraform workspace select "${WORKSPACE}"
+fi
+
+# Validate and plan before touching anything
+terraform validate
+terraform plan -out="tfplan.${WORKSPACE}"
+
+echo "==> Review the plan above, then apply with:"
+echo "    terraform apply tfplan.${WORKSPACE}"
