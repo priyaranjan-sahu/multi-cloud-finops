@@ -25,6 +25,8 @@ env/
 .coverage
 coverage.xml
 htmlcov/
+.ruff_cache/
+.mypy_cache/
 
 # IDE
 .vscode/
