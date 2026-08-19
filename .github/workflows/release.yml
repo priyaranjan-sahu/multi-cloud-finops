@@ -85,8 +85,10 @@ jobs:
         continue-on-error: true
         run: |
           PACKAGE="${GITHUB_REPOSITORY#*/}"
-          curl -sS -X PATCH \
+          CODE=$(curl -sS -o /tmp/pkg_resp.json -w "%{http_code}" -X PATCH \
             -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/user/packages/container/${PACKAGE}" \
-            -d '{"visibility":"public"}'
+            -d '{"visibility":"public"}')
+          echo "PATCH /user/packages/container/${PACKAGE} -> ${CODE}"
+          cat /tmp/pkg_resp.json
