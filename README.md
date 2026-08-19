@@ -1,5 +1,18 @@
 # Multi-Cloud FinOps & Cost Optimization Platform
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/priyaranjan-sahu/multi-cloud-finops/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
+[![AWS](https://img.shields.io/badge/Provider-AWS-orange.svg)](https://aws.amazon.com/)
+[![GCP](https://img.shields.io/badge/Provider-GCP-4285F4.svg)](https://cloud.google.com/)
+[![Azure](https://img.shields.io/badge/Provider-Azure-0078D4.svg)](https://azure.microsoft.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141%2B-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg?logo=docker)](https://www.docker.com/)
+[![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC.svg?logo=terraform)](https://www.terraform.io/)
+[![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C.svg?logo=prometheus)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800.svg?logo=grafana)](https://grafana.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-KEDA-326CE5.svg?logo=kubernetes)](https://kubernetes.io/)
+
 Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GCP, and Azure. All telemetry is normalized to the FOCUS 1.0 schema, exposed through a FastAPI service, and exported to Prometheus for Grafana dashboards.
 
 ## What it does
@@ -68,6 +81,7 @@ multi-cloud-finops/
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── SECURITY.md
+├── social-preview.png              # Repository social preview image
 │
 ├── finops_engine/                  # Core package
 │   ├── config.py                   # Env-driven settings
@@ -206,6 +220,12 @@ See `CONTRIBUTING.md` for the full workflow.
 
 See `CONTRIBUTING.md` for the development workflow and conventions. Pull
 requests are welcome; for larger changes, open an issue first.
+
+## Support
+
+If this project is useful, consider supporting the maintainer:
+
+[![Sponsor priyaranjan-sahu](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/priyaranjan-sahu)
 
 ## License
 
