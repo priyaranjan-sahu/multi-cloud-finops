@@ -1,8 +1,7 @@
 """
-FastAPI application exposing the FinOps REST endpoints.
-
-Serves FOCUS telemetry, anomaly detection, forecasting, and rightsizing
-results with typed response models and optional API-key authentication.
+Enterprise FastAPI REST API Server for Multi-Cloud FinOps Platform
+Exposes RESTful endpoints for FOCUS telemetry, AI anomaly detection, forecasting,
+and rightsizing, with typed response models and optional API-key authentication.
 """
 
 import asyncio
@@ -11,9 +10,9 @@ import hmac
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Query, Request, Response, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyHeader
 
 from finops_engine import __version__
 from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
@@ -60,34 +59,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
-_original_openapi = app.openapi
-
-
-def _apply_api_key_security() -> dict:
-    """Injects the API-key security scheme into OpenAPI when auth is configured.
-
-    Only ``/api/*`` routes are marked as requiring the key; public routes such
-    as ``/`` and ``/metrics`` stay documented as unauthenticated.
-    """
-    if app.openapi_schema:
-        return app.openapi_schema
-    schema = _original_openapi()
-    if settings.api_key:
-        schema.setdefault("components", {})["securitySchemes"] = {
-            "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"}
-        }
-        for path, methods in schema.get("paths", {}).items():
-            if path.startswith("/api/"):
-                for operation in methods.values():
-                    if "security" not in operation:
-                        operation["security"] = [{"ApiKeyAuth": []}]
-    app.openapi_schema = schema
-    return schema
-
-
-app.openapi = _apply_api_key_security  # type: ignore[method-assign]
-
 # CORS: credentials are only allowed when an explicit origin allow-list is configured.
 origins = settings.cors_origins or ["*"]
 app.add_middleware(
@@ -98,18 +69,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# API Key Security Dependency
+api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKeyAuth", auto_error=False)
 
-@app.middleware("http")
-async def require_api_key(request: Request, call_next):
-    """Enforces an X-API-Key header on /api/* routes when FINOP_API_KEY is set."""
-    if settings.api_key and request.url.path.startswith("/api/"):
-        provided = request.headers.get("X-API-Key", "")
-        if not hmac.compare_digest(provided, settings.api_key):
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"detail": "Invalid or missing API key"},
-            )
-    return await call_next(request)
+
+async def verify_api_key(api_key: str | None = Depends(api_key_header)):
+    """Validates the API key when configured."""
+    if settings.api_key and (not api_key or not hmac.compare_digest(api_key, settings.api_key)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+        )
+
+
+# OpenAPI dynamic schema customizer to match settings.api_key configuration
+_original_openapi = app.openapi
+
+
+def custom_openapi() -> dict:
+    """Dynamically includes or omits API-key security schemes based on config."""
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    schema = _original_openapi()
+    if not settings.api_key:
+        # Strip API key security if disabled
+        if "components" in schema and "securitySchemes" in schema["components"]:
+            schema["components"].pop("securitySchemes", None)
+        for path in schema.get("paths", {}).values():
+            for method in path.values():
+                method.pop("security", None)
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = custom_openapi  # type: ignore[method-assign]
+
+# Sub-router for versioned API endpoints, secured by API Key validation
+api_router = APIRouter(prefix="/api/v1", dependencies=[Depends(verify_api_key)])
 
 
 def _get_records(use_mock: bool | None, days: int = 30):
@@ -136,7 +133,7 @@ def root():
     }
 
 
-@app.get("/api/v1/costs/summary", response_model=CostSummaryResponse)
+@api_router.get("/costs/summary", response_model=CostSummaryResponse)
 def get_cost_summary(
     days: int = Query(default=30, ge=1, le=365),
     use_mock: bool | None = None,
@@ -162,7 +159,7 @@ def get_cost_summary(
     }
 
 
-@app.get("/api/v1/costs/focus-export", response_model=FocusExportResponse)
+@api_router.get("/costs/focus-export", response_model=FocusExportResponse)
 def export_focus_telemetry(
     days: int = Query(default=30, ge=1, le=90),
     use_mock: bool | None = None,
@@ -181,7 +178,7 @@ def export_focus_telemetry(
     }
 
 
-@app.get("/api/v1/anomalies/detect", response_model=AnomalyDetectionResponse)
+@api_router.get("/anomalies/detect", response_model=AnomalyDetectionResponse)
 def detect_anomalies(
     days: int = Query(default=60, ge=7, le=180),
     contamination: float = Query(default=0.05, ge=0.001, le=0.5),
@@ -201,7 +198,7 @@ def detect_anomalies(
     }
 
 
-@app.get("/api/v1/forecast/predict", response_model=ForecastResponse)
+@api_router.get("/forecast/predict", response_model=ForecastResponse)
 def predict_costs(
     forecast_days: int = Query(default=30, ge=7, le=90),
     use_mock: bool | None = None,
@@ -215,7 +212,7 @@ def predict_costs(
     return result
 
 
-@app.get("/api/v1/recommendations/rightsizing", response_model=RightsizingResponse)
+@api_router.get("/recommendations/rightsizing", response_model=RightsizingResponse)
 def get_rightsizing_recommendations(use_mock: bool | None = None):
     """Fetch actionable rightsizing and waste reduction recommendations."""
     FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/recommendations/rightsizing").inc()
@@ -231,3 +228,7 @@ def prometheus_metrics():
     """Prometheus metrics scraper endpoint (served from the background refresh cache)."""
     metrics_data = get_prometheus_metrics_bytes()
     return Response(content=metrics_data, media_type=CONTENT_TYPE_LATEST)
+
+
+# Include the API router into the main app
+app.include_router(api_router)

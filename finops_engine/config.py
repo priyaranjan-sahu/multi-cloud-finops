@@ -10,9 +10,78 @@ Every runtime knob can be overridden at deploy time without code changes:
 """
 
 import os
+from typing import Any
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Runtime settings for the FinOps engine."""
+
+    mock_mode: bool = Field(default=True, validation_alias="FINOP_MOCK_MODE")
+    allow_mock_fallback: bool = Field(default=False, validation_alias="FINOP_ALLOW_MOCK_FALLBACK")
+    api_key: str = Field(default="", validation_alias="FINOP_API_KEY")
+    cors_origins: list[str] = Field(default_factory=list, validation_alias="FINOP_CORS_ORIGINS")
+    metrics_refresh_seconds: int = Field(default=15, validation_alias="FINOP_METRICS_REFRESH_SECONDS")
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+    @field_validator("mock_mode", mode="before")
+    @classmethod
+    def parse_mock_mode(cls, v: Any) -> bool:
+        if v is None:
+            return True
+        if isinstance(v, bool):
+            return v
+        return str(v).strip().lower() in ("1", "true", "yes", "on")
+
+    @field_validator("allow_mock_fallback", mode="before")
+    @classmethod
+    def parse_allow_mock_fallback(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        if isinstance(v, bool):
+            return v
+        return str(v).strip().lower() in ("1", "true", "yes", "on")
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: str | list) -> list[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v or []
+
+    @field_validator("api_key", mode="before")
+    @classmethod
+    def parse_api_key(cls, v: str) -> str:
+        if isinstance(v, str):
+            return v.strip()
+        return v or ""
+
+    @field_validator("metrics_refresh_seconds", mode="before")
+    @classmethod
+    def parse_metrics_refresh(cls, v: Any) -> int:
+        if v is None:
+            return 15
+        try:
+            val = int(str(v).strip())
+            if val < 1:
+                return 15
+            return val
+        except ValueError:
+            return 15
+
+
+settings = Settings()
 
 
 def _env_bool(name: str, default: bool) -> bool:
+    """Compatibility helper to parse booleans from the environment."""
     raw = os.getenv(name)
     if raw is None:
         return default
@@ -20,7 +89,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 def _env_int(name: str, default: int, minimum: int = 1) -> int:
-    """Parse an integer env var, falling back to ``default`` on garbage or too-small values."""
+    """Compatibility helper to parse integers from the environment."""
     raw = os.getenv(name)
     if raw is None:
         return default
@@ -31,19 +100,3 @@ def _env_int(name: str, default: int, minimum: int = 1) -> int:
     if value < minimum:
         return default
     return value
-
-
-class Settings:
-    """Runtime settings for the FinOps engine."""
-
-    def __init__(self) -> None:
-        self.mock_mode: bool = _env_bool("FINOP_MOCK_MODE", True)
-        self.allow_mock_fallback: bool = _env_bool("FINOP_ALLOW_MOCK_FALLBACK", False)
-        self.api_key: str = os.getenv("FINOP_API_KEY", "").strip()
-        self.cors_origins: list[str] = [
-            origin.strip() for origin in os.getenv("FINOP_CORS_ORIGINS", "").split(",") if origin.strip()
-        ]
-        self.metrics_refresh_seconds: int = _env_int("FINOP_METRICS_REFRESH_SECONDS", 15)
-
-
-settings = Settings()
