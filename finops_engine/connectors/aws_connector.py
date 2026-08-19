@@ -9,8 +9,9 @@ logger = logging.getLogger("finops.connectors.aws")
 
 
 class AWSConnector:
-    def __init__(self, region_name: str = "us-east-1"):
+    def __init__(self, region_name: str = "us-east-1", account_id: str = ""):
         self.region_name = region_name
+        self.account_id = account_id
 
     def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]:
         """Fetches AWS Cost Explorer metrics and maps to FOCUS schema."""
@@ -60,7 +61,7 @@ class AWSConnector:
                                 service_name=service_name,
                                 service_category=categorize_service(service_name),
                                 region_id=self.region_name,
-                                sub_account_id="aws-account-main",
+                                sub_account_id=self.account_id or "unknown-aws-account",
                                 billing_period_start=time_start,
                                 billing_period_end=time_end,
                             )

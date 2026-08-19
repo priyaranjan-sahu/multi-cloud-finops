@@ -20,7 +20,7 @@ the issue is understood.
 
 ## Operational guidance
 
-- Run the API with `FINOP_MOCK_MODE=true` unless you intend to query live
+- The default is live mode (`FINOP_MOCK_MODE=false`) and it fails closed when no provider is configured. Use `FINOP_MOCK_MODE=true` only for local demos or tests.
   billing data.
 - Never commit credentials. Cloud SDK credentials come from the standard
   environment/credential chains, never from code.

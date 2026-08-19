@@ -18,18 +18,32 @@ spec:
       labels:
         app: multi-cloud-finops-app
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: multi-cloud-finops-app
-          image: multi-cloud-finops:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/your-org/multi-cloud-finops:1.1.0
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
               name: http
           env:
-            - name: FINOP_MOCK_MODE
-              value: "true"
+            - name: FINOP_ENVIRONMENT
+              value: "production"
             - name: LOG_LEVEL
               value: "INFO"
+          envFrom:
+            - secretRef:
+                name: finops-runtime-config
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           resources:
             requests:
               cpu: 250m

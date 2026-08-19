@@ -41,8 +41,10 @@ Thumbs.db
 # Environment variables
 .env
 .env.*
+!.env.example
 *.env
 
+kubernetes/finops-runtime-config.yaml
 # Terraform
 infra/.terraform/
 infra/*.tfstate

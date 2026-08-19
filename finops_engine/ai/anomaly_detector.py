@@ -25,6 +25,7 @@ class AnomalyDetector:
 
         df["date"] = df["billing_period_start"].dt.date
         daily = df.groupby(["date", "provider_name", "service_name"])["billed_cost"].sum().reset_index()
+        daily = daily.sort_values(["provider_name", "service_name", "date"]).reset_index(drop=True)
 
         if len(daily) < 5:
             return []
@@ -34,14 +35,14 @@ class AnomalyDetector:
         daily["iforest_score"] = self.model.predict(X)
 
         daily["mean"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
-            lambda x: x.rolling(7, min_periods=1).mean()
+            lambda x: x.shift(1).rolling(7, min_periods=3).mean()
         )
         daily["std"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
-            lambda x: x.rolling(7, min_periods=1).std().fillna(1.0)
+            lambda x: x.shift(1).rolling(7, min_periods=3).std()
         )
         daily["z_score"] = (daily["billed_cost"] - daily["mean"]) / daily["std"].replace(0, 1.0)
 
-        anomalies_df = daily[(daily["iforest_score"] == -1) & (daily["z_score"] >= self.z_threshold)].copy()
+        anomalies_df = daily[daily["mean"].notna() & (daily["iforest_score"] == -1) & (daily["z_score"] >= self.z_threshold)].copy()
 
         results = []
         for _, row in anomalies_df.iterrows():

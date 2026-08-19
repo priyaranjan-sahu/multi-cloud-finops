@@ -30,7 +30,7 @@ def test_cost_summary_endpoint():
 
 
 def test_cost_summary_reports_data_source():
-    response = client.get("/api/v1/costs/summary?days=7")
+    response = client.get("/api/v1/costs/summary?days=7&use_mock=true")
     assert response.status_code == 200
     data = response.json()
     assert data["data_source"] == "mock"
@@ -54,7 +54,7 @@ def test_focus_export_endpoint():
 
 
 def test_focus_export_pagination():
-    response = client.get("/api/v1/costs/focus-export?days=7&limit=10&offset=0")
+    response = client.get("/api/v1/costs/focus-export?days=7&limit=10&offset=0&use_mock=true")
     assert response.status_code == 200
     data = response.json()
     assert data["record_count"] >= 10
@@ -105,7 +105,7 @@ def test_api_key_enforced_when_configured(monkeypatch):
     unauthorized = client.get("/api/v1/costs/summary?days=7")
     assert unauthorized.status_code == 401
 
-    authorized = client.get("/api/v1/costs/summary?days=7", headers={"X-API-Key": "test-secret"})
+    authorized = client.get("/api/v1/costs/summary?days=7&use_mock=true", headers={"X-API-Key": "test-secret"})
     assert authorized.status_code == 200
 
 

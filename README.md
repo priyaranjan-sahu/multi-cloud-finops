@@ -77,6 +77,8 @@ flowchart LR
 ```bash
 git clone https://github.com/priyaranjan-sahu/multi-cloud-finops.git
 cd multi-cloud-finops
+cp .env.example .env
+# Edit .env and set a non-default Grafana password.
 docker compose up --build
 ```
 
@@ -84,7 +86,7 @@ docker compose up --build
 |---|---|
 | API + Swagger docs | http://localhost:8000/docs |
 | Prometheus metrics | http://localhost:8000/metrics |
-| Grafana dashboards | http://localhost:3000 (admin/admin) |
+| Grafana dashboards | http://localhost:3000 (credentials from `.env`) |
 
 ### Local development
 
@@ -101,14 +103,14 @@ Runtime behavior is controlled by environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
-| `FINOP_MOCK_MODE` | `true` | Use synthetic telemetry instead of live cloud APIs |
+| `FINOP_MOCK_MODE` | `false` | Use synthetic telemetry; `.env.example` enables it only for local demos |
 | `FINOP_ALLOW_MOCK_FALLBACK` | `false` | Fall back to synthetic data when live fetch returns nothing |
 | `FINOP_API_KEY` | *(empty)* | When set, all `/api/*` routes require an `X-API-Key` header |
 | `FINOP_CORS_ORIGINS` | *(empty = allow all)* | Comma-separated origin allow-list for CORS |
 | `FINOP_METRICS_REFRESH_SECONDS` | `15` | How often Prometheus metrics are recomputed |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
 
-Live mode is fail-closed: if every provider returns no data and `FINOP_ALLOW_MOCK_FALLBACK` is off, the API returns `503` rather than reporting synthetic data as real.
+For live mode, configure at least one provider using `FINOP_AWS_ACCOUNT_ID` (plus `FINOP_AWS_REGION`), both `FINOP_GCP_PROJECT_ID` and `FINOP_GCP_BILLING_TABLE`, or `FINOP_AZURE_SUBSCRIPTION_ID`; credentials come from the standard cloud SDK chain. Live mode is fail-closed: if no configured provider returns data and `FINOP_ALLOW_MOCK_FALLBACK` is off, the API returns `503` rather than reporting synthetic data as real. The service currently accepts USD billing records only.
 
 ## Project structure
 
@@ -231,9 +233,13 @@ Terraform modules live in `infra/`. Copy `terraform.tfvars.example` to `terrafor
 ## Kubernetes
 
 ```bash
+cp kubernetes/finops-runtime-config.example.yaml kubernetes/finops-runtime-config.yaml
+# Replace every placeholder, then create the Secret outside source control.
+kubectl apply -f kubernetes/finops-runtime-config.yaml
 kubectl apply -f kubernetes/deployment.yaml
 kubectl apply -f kubernetes/keda_autoscaler.yaml
 ```
+Replace `ghcr.io/your-org/multi-cloud-finops:1.1.0` with your published immutable image tag before applying the deployment.
 
 The KEDA ScaledObject scales the deployment between 1-15 replicas based on CPU (70%) and memory (80%) utilization thresholds.
 

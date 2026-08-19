@@ -8,6 +8,7 @@ cost data, plus the mock connector used for demos and tests.
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
+from finops_engine.config import settings
 from finops_engine.errors import DataFetchError
 from finops_engine.schema.focus_spec import FocusRecord
 
@@ -55,7 +56,18 @@ def fetch_multicloud_cost(
     start_date = start_dt.strftime("%Y-%m-%d")
     end_date = end_dt.strftime("%Y-%m-%d")
 
-    connectors: list[CostConnector] = [AWSConnector(), GCPConnector(), AzureConnector()]
+    connectors: list[CostConnector] = []
+    if settings.aws_account_id:
+        connectors.append(AWSConnector(region_name=settings.aws_region, account_id=settings.aws_account_id))
+    if settings.gcp_project_id and settings.gcp_billing_table:
+        connectors.append(GCPConnector(project_id=settings.gcp_project_id, billing_table=settings.gcp_billing_table))
+    if settings.azure_subscription_id:
+        connectors.append(AzureConnector(subscription_id=settings.azure_subscription_id))
+
+    if not connectors:
+        if allow_fallback:
+            return MockTelemetryConnector(days=days).fetch_cost_data(), "mock-fallback"
+        raise DataFetchError("No live cloud providers are configured")
     records: list[FocusRecord] = []
     for connector in connectors:
         records.extend(connector.fetch_cost_data(start_date=start_date, end_date=end_date))

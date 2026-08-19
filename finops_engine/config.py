@@ -19,7 +19,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Runtime settings for the FinOps engine."""
 
-    mock_mode: bool = Field(default=True, validation_alias="FINOP_MOCK_MODE")
+    mock_mode: bool = Field(default=False, validation_alias="FINOP_MOCK_MODE")
+    environment: str = Field(default="development", validation_alias="FINOP_ENVIRONMENT")
+    aws_region: str = Field(default="us-east-1", validation_alias="FINOP_AWS_REGION")
+    aws_account_id: str = Field(default="", validation_alias="FINOP_AWS_ACCOUNT_ID")
+    gcp_project_id: str = Field(default="", validation_alias="FINOP_GCP_PROJECT_ID")
+    gcp_billing_table: str = Field(default="", validation_alias="FINOP_GCP_BILLING_TABLE")
+    azure_subscription_id: str = Field(default="", validation_alias="FINOP_AZURE_SUBSCRIPTION_ID")
     allow_mock_fallback: bool = Field(default=False, validation_alias="FINOP_ALLOW_MOCK_FALLBACK")
     api_key: str = Field(default="", validation_alias="FINOP_API_KEY")
     cors_origins: list[str] = Field(default_factory=list, validation_alias="FINOP_CORS_ORIGINS")
@@ -75,6 +81,12 @@ class Settings(BaseSettings):
             return val
         except ValueError:
             return 15
+    @field_validator("environment", "aws_region", "aws_account_id", "gcp_project_id", "gcp_billing_table", "azure_subscription_id", mode="before")
+    @classmethod
+    def strip_text(cls, v: Any) -> str:
+        return str(v).strip() if v is not None else ""
+
+
 
 
 settings = Settings()

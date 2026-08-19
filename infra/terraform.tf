@@ -43,7 +43,7 @@ provider "azurerm" {
 # AWS FinOps Telemetry Bucket
 resource "aws_s3_bucket" "finops_logs" {
   bucket        = var.bucket_name
-  force_destroy = true
+  force_destroy = false
 
   tags = {
     Environment = var.environment
@@ -74,7 +74,7 @@ resource "google_storage_bucket" "finops_gcs" {
   name          = var.gcs_bucket_name
   location      = var.gcp_region
   storage_class = "STANDARD"
-  force_destroy = true
+  force_destroy = false
 
   uniform_bucket_level_access = true
 

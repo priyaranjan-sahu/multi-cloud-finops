@@ -42,6 +42,12 @@ logger = logging.getLogger("finops.api")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Starts the background Prometheus metrics refresh loop."""
+    if settings.environment.lower() == "production":
+        if not settings.api_key:
+            raise RuntimeError("FINOP_API_KEY must be set when FINOP_ENVIRONMENT=production")
+        if not settings.cors_origins:
+            raise RuntimeError("FINOP_CORS_ORIGINS must be set when FINOP_ENVIRONMENT=production")
+
     metrics_task = asyncio.create_task(refresh_finops_metrics_loop(settings.metrics_refresh_seconds))
     logger.info("Background Prometheus metrics refresh started (every %ss)", settings.metrics_refresh_seconds)
     try:

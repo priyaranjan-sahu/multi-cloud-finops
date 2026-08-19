@@ -26,23 +26,22 @@ class GCPConnector:
             from google.cloud import bigquery
 
             client = bigquery.Client(project=self.project_id)
-            # LEFT JOIN UNNEST keeps usage lines that carry no credits (a
-            # CROSS JOIN would silently drop them), and SUM()/GROUP BY folds
-            # multiple credit rows for one usage line into a single record.
+            # Aggregate credits inside each usage row; joining UNNEST(credits)
+            # duplicates cost and usage when a row has multiple credits.
             query = f"""
                 SELECT
                     service.description          AS service_name,
                     MIN(usage_start_time)        AS usage_start,
                     MAX(usage_end_time)          AS usage_end,
                     SUM(cost)                    AS billed_cost,
-                    SUM(COALESCE(credits.amount, 0.0)) AS credit_amount,
+                    SUM(COALESCE((SELECT SUM(credit.amount) FROM UNNEST(credits) AS credit), 0.0)) AS credit_amount,
                     SUM(usage.amount)            AS usage_quantity,
                     ANY_VALUE(usage.unit)        AS usage_unit,
+                    ANY_VALUE(currency)          AS currency,
                     project.name                 AS project_name,
                     resource.name                AS resource_name
                 FROM `{self.billing_table}`
-                LEFT JOIN UNNEST(credits) AS credits
-                WHERE DATE(usage_start_time) BETWEEN @start_date AND @end_date
+                WHERE DATE(usage_start_time) >= @start_date AND DATE(usage_start_time) < @end_date
                 GROUP BY service.description, project.name, resource.name, DATE(usage_start_time)
             """
             job_config = bigquery.QueryJobConfig(
@@ -59,6 +58,10 @@ class GCPConnector:
                     credit = float(row.get("credit_amount") or 0.0)
                     effective = round(billed - credit, 4)
                     service_name = str(row.get("service_name") or "Unknown Service")
+                    currency = str(row.get("currency") or "USD").upper()
+                    if currency != "USD":
+                        logger.warning("Skipping GCP record in unsupported currency %s", currency)
+                        continue
 
                     records.append(
                         FocusRecord(
@@ -67,14 +70,14 @@ class GCPConnector:
                             charge_category=ChargeCategory.USAGE,
                             billed_cost=round(billed, 4),
                             effective_cost=effective,
-                            currency="USD",
+                            currency=currency,
                             usage_quantity=round(float(row.get("usage_quantity") or 0.0), 2),
                             usage_unit=str(row.get("usage_unit") or "Hours"),
                             service_name=service_name,
                             service_category=categorize_service(service_name),
                             region_id="global",
                             sub_account_id=str(row.get("project_name") or self.project_id),
-                            resource_id=str(row.get("resource_name") or None),
+                            resource_id=row.get("resource_name") or None,
                             billing_period_start=row.get("usage_start"),
                             billing_period_end=row.get("usage_end"),
                         )
