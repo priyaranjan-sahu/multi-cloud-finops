@@ -19,6 +19,20 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.strip().lower() in ("1", "true", "yes", "on")
 
 
+def _env_int(name: str, default: int, minimum: int = 1) -> int:
+    """Parse an integer env var, falling back to ``default`` on garbage or too-small values."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        value = int(raw.strip())
+    except ValueError:
+        return default
+    if value < minimum:
+        return default
+    return value
+
+
 class Settings:
     """Runtime settings for the FinOps engine."""
 
@@ -29,7 +43,7 @@ class Settings:
         self.cors_origins: list[str] = [
             origin.strip() for origin in os.getenv("FINOP_CORS_ORIGINS", "").split(",") if origin.strip()
         ]
-        self.metrics_refresh_seconds: int = int(os.getenv("FINOP_METRICS_REFRESH_SECONDS", "15"))
+        self.metrics_refresh_seconds: int = _env_int("FINOP_METRICS_REFRESH_SECONDS", 15)
 
 
 settings = Settings()
