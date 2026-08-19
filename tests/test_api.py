@@ -2,8 +2,8 @@
 Integration tests for the FastAPI REST API endpoints.
 """
 
-import pytest
 from fastapi.testclient import TestClient
+
 from finops_engine.api.app import app
 
 client = TestClient(app)
@@ -28,6 +28,13 @@ def test_cost_summary_endpoint():
     assert "spend_by_service" in data
 
 
+def test_cost_summary_reports_data_source():
+    response = client.get("/api/v1/costs/summary?days=7")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["data_source"] == "mock"
+
+
 def test_focus_export_endpoint():
     response = client.get("/api/v1/costs/focus-export?days=7&use_mock=true")
     assert response.status_code == 200
@@ -35,6 +42,14 @@ def test_focus_export_endpoint():
     assert data["focus_version"] == "1.0"
     assert "records" in data
     assert data["record_count"] > 0
+
+
+def test_focus_export_pagination():
+    response = client.get("/api/v1/costs/focus-export?days=7&limit=10&offset=0")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["record_count"] >= 10
+    assert len(data["records"]) == 10
 
 
 def test_anomaly_detection_endpoint():
@@ -71,3 +86,29 @@ def test_prometheus_metrics_endpoint():
 def test_docs_available():
     response = client.get("/docs")
     assert response.status_code == 200
+
+
+def test_api_key_enforced_when_configured(monkeypatch):
+    from finops_engine.config import settings
+
+    monkeypatch.setattr(settings, "api_key", "test-secret")
+
+    unauthorized = client.get("/api/v1/costs/summary?days=7")
+    assert unauthorized.status_code == 401
+
+    authorized = client.get("/api/v1/costs/summary?days=7", headers={"X-API-Key": "test-secret"})
+    assert authorized.status_code == 200
+
+
+def test_live_mode_fails_closed_when_no_data(monkeypatch):
+    import sys
+
+    app_module = sys.modules["finops_engine.api.app"]
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("No cost data available from any configured cloud provider")
+
+    monkeypatch.setattr(app_module, "fetch_multicloud_cost", boom)
+
+    response = client.get("/api/v1/costs/summary?days=7&use_mock=false")
+    assert response.status_code == 503

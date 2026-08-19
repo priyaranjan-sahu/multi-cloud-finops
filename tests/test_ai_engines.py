@@ -1,10 +1,9 @@
 """
-Unit tests for AI Anomaly Detection and Cost Forecasting engines.
+Unit tests for AI Anomaly Detection, Cost Forecasting, and Rightsizing engines.
 """
 
-from datetime import datetime
-from finops_engine.connectors import MockTelemetryConnector
 from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
+from finops_engine.connectors import MockTelemetryConnector
 
 
 def test_mock_connector_generates_records():
@@ -13,6 +12,15 @@ def test_mock_connector_generates_records():
     assert len(records) > 0
     # Each day x 3 providers x 4 services
     assert len(records) >= 30 * 3 * 4
+
+
+def test_mock_connector_resource_ids_are_stable():
+    connector = MockTelemetryConnector(days=30, seed=42)
+    records = connector.fetch_cost_data()
+    unique_ids = {record.resource_id for record in records}
+    # Far fewer unique resources than records -> identities are stable across days
+    assert len(unique_ids) < len(records)
+    assert len(unique_ids) == 12  # 3 providers x 4 services
 
 
 def test_anomaly_detector_returns_list():
@@ -31,6 +39,11 @@ def test_anomaly_detector_detects_spikes():
     anomalies = detector.detect_anomalies(records)
     # Must detect at least some anomalies given injected spikes
     assert len(anomalies) > 0
+
+
+def test_anomaly_detector_empty_records():
+    detector = AnomalyDetector()
+    assert detector.detect_anomalies([]) == []
 
 
 def test_anomaly_severity_assignment():
@@ -66,6 +79,24 @@ def test_forecaster_confidence_bounds_present():
         assert item["confidence_lower_usd"] >= 0.0
 
 
+def test_forecaster_intervals_widen_with_horizon():
+    connector = MockTelemetryConnector(days=60, seed=42)
+    records = connector.fetch_cost_data()
+    forecaster = CostForecaster(forecast_days=30)
+    result = forecaster.predict_future_cost(records)
+
+    first_margin = result["forecast"][0]["confidence_upper_usd"] - result["forecast"][0]["predicted_cost_usd"]
+    last_margin = result["forecast"][-1]["confidence_upper_usd"] - result["forecast"][-1]["predicted_cost_usd"]
+    assert last_margin >= first_margin
+
+
+def test_forecaster_empty_records():
+    forecaster = CostForecaster(forecast_days=30)
+    result = forecaster.predict_future_cost([])
+    assert result["forecast"] == []
+    assert result["total_projected_spend_usd"] == 0.0
+
+
 def test_rightsizing_engine_structure():
     connector = MockTelemetryConnector(days=30)
     records = connector.fetch_cost_data()
@@ -87,3 +118,26 @@ def test_rightsizing_recommendations_fields():
         assert "provider" in rec
         assert "action" in rec
         assert "estimated_monthly_savings_usd" in rec
+
+
+def test_rightsizing_recommendations_derived_from_data():
+    connector = MockTelemetryConnector(days=30, seed=42)
+    records = connector.fetch_cost_data()
+    engine = RightsizingEngine()
+    result = engine.generate_recommendations(records)
+
+    known_resources = {record.resource_id for record in records}
+    assert result["recommendations_count"] > 0
+    for rec in result["recommendations"]:
+        # Every recommendation must reference a real resource seen in telemetry
+        assert rec["resource_id"] in known_resources
+        assert rec["estimated_monthly_savings_usd"] > 0
+        assert rec["projected_monthly_cost_usd"] < rec["current_monthly_cost_usd"]
+
+
+def test_rightsizing_empty_records():
+    engine = RightsizingEngine()
+    result = engine.generate_recommendations([])
+    assert result["recommendations"] == []
+    assert result["total_potential_monthly_savings_usd"] == 0.0
+    assert result["recommendations_count"] == 0
