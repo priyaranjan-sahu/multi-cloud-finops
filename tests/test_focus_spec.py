@@ -4,7 +4,15 @@ Unit tests for FOCUS schema specification and DataFrame normalization.
 
 from datetime import datetime
 
-from finops_engine.schema import ChargeCategory, CloudProvider, FocusRecord, normalize_to_focus_dataframe
+import pytest
+
+from finops_engine.schema import (
+    ChargeCategory,
+    CloudProvider,
+    FocusRecord,
+    categorize_service,
+    normalize_to_focus_dataframe,
+)
 
 
 def test_focus_record_creation():
@@ -91,3 +99,31 @@ def test_normalize_empty_records_returns_expected_columns():
     assert df.empty
     assert "provider_name" in df.columns
     assert "billed_cost" in df.columns
+
+
+@pytest.mark.parametrize(
+    ("service", "expected"),
+    [
+        ("AmazonEC2", "Compute"),
+        ("Compute Engine", "Compute"),
+        ("Virtual Machines", "Compute"),
+        ("AWS Lambda", "Compute"),
+        ("AmazonS3", "Storage"),
+        ("Cloud Storage", "Storage"),
+        ("Blob Storage", "Storage"),
+        ("AmazonRDS", "Database"),
+        ("BigQuery", "Database"),
+        ("SQL Database", "Database"),
+        ("AmazonDynamoDB", "Database"),
+        ("AmazonEKS", "Container"),
+        ("GKE", "Container"),
+        ("AKS", "Container"),
+        ("AmazonECS", "Container"),
+        ("AmazonVPC", "Network"),
+        ("Virtual Network", "Network"),
+        ("Cloud CDN", "Network"),
+    ],
+)
+def test_categorize_service_shared_across_providers(service, expected):
+    """Live connectors and the mock connector must agree on categorization."""
+    assert categorize_service(service) == expected

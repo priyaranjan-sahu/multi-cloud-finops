@@ -35,6 +35,14 @@ def test_cost_summary_reports_data_source():
     assert data["data_source"] == "mock"
 
 
+def test_cost_summary_includes_region_breakdown():
+    response = client.get("/api/v1/costs/summary?days=7&use_mock=true")
+    assert response.status_code == 200
+    data = response.json()
+    assert "spend_by_region" in data
+    assert data["spend_by_region"]  # mock telemetry spans us-east-1 / us-central1 / eastus
+
+
 def test_focus_export_endpoint():
     response = client.get("/api/v1/costs/focus-export?days=7&use_mock=true")
     assert response.status_code == 200
@@ -112,3 +120,26 @@ def test_live_mode_fails_closed_when_no_data(monkeypatch):
 
     response = client.get("/api/v1/costs/summary?days=7&use_mock=false")
     assert response.status_code == 503
+
+
+def test_openapi_declares_api_key_scheme_when_configured(monkeypatch):
+    from finops_engine.config import settings
+
+    monkeypatch.setattr(settings, "api_key", "test-secret")
+
+    schema = app.openapi()
+    assert "ApiKeyAuth" in schema["components"]["securitySchemes"]
+    assert schema["components"]["securitySchemes"]["ApiKeyAuth"]["name"] == "X-API-Key"
+    # /api/* operations are documented as requiring the key...
+    assert schema["paths"]["/api/v1/costs/summary"]["get"]["security"] == [{"ApiKeyAuth": []}]
+    # ...while public endpoints are not.
+    assert "security" not in schema["paths"]["/"]["get"]
+
+
+def test_openapi_omits_security_when_key_disabled(monkeypatch):
+    from finops_engine.config import settings
+
+    monkeypatch.setattr(settings, "api_key", "")
+    app.openapi_schema = None
+    schema = app.openapi()
+    assert "securitySchemes" not in schema["components"]
