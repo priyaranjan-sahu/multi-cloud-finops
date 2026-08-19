@@ -115,7 +115,8 @@ def get_prometheus_metrics_bytes() -> bytes:
     if _metrics_cache["content"] is None:
         _refresh_cached_metrics()
     content = _metrics_cache["content"]
-    assert content is not None
+    if content is None:
+        raise RuntimeError("Metrics cache was not populated")
     return content
 
 

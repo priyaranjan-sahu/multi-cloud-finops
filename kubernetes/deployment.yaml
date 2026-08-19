@@ -26,7 +26,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: multi-cloud-finops-app
-          image: ghcr.io/your-org/multi-cloud-finops:1.1.0
+          image: ghcr.io/priyaranjan-sahu/multi-cloud-finops:1.1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

@@ -10,8 +10,10 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
+      - FINOP_ENVIRONMENT=${FINOP_ENVIRONMENT:-development}
       - FINOP_MOCK_MODE=${FINOP_MOCK_MODE:-false}
       - FINOP_API_KEY=${FINOP_API_KEY:-}
+      - FINOP_CORS_ORIGINS=${FINOP_CORS_ORIGINS:-}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)"]
       interval: 15s

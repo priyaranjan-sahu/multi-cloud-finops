@@ -48,7 +48,10 @@ class AzureConnector:
                 ),
                 dataset=QueryDataset(
                     granularity=GranularityType.DAILY,
-                    aggregation={"totalCost": QueryAggregation(name="PreTaxCost", function="Sum")},
+                    aggregation={
+                        "totalCost": QueryAggregation(name="PreTaxCost", function="Sum"),
+                        "usageQuantity": QueryAggregation(name="UsageQuantity", function="Sum"),
+                    },
                     grouping=[QueryGrouping(type="Dimension", name="ServiceName")],
                 ),
             )
@@ -66,6 +69,7 @@ class AzureConnector:
                     time_start = datetime.strptime(str(date_str), "%Y-%m-%d").replace(tzinfo=timezone.utc)
                     time_end = time_start + timedelta(days=1)
                     billed = float(values.get("totalCost") or 0.0)
+                    usage_qty = float(values.get("usageQuantity") or 0.0)
                     service_name = str(values.get("ServiceName") or "Unknown Service")
 
                     records.append(
@@ -76,7 +80,7 @@ class AzureConnector:
                             billed_cost=round(billed, 4),
                             effective_cost=round(billed, 4),
                             currency="USD",
-                            usage_quantity=0.0,
+                            usage_quantity=round(usage_qty, 2),
                             usage_unit="Hours",
                             service_name=service_name,
                             service_category=categorize_service(service_name),

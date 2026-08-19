@@ -36,4 +36,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/', timeout=3)"
 
-CMD ["uvicorn", "finops_engine.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "finops_engine.api.app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--log-level", "info", "--access-log"]
