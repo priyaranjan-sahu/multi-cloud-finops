@@ -1,0 +1,23 @@
+# Normalize line endings and make files diff-friendly.
+* text=auto
+
+# Shell and Python sources: keep LF.
+*.py text eol=lf
+*.sh text eol=lf
+Makefile text eol=lf
+
+# Config files.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+
+# Binaries and archives.
+*.png binary
+*.jpg binary
+*.ico binary
+*.tar.gz binary
+*.zip binary

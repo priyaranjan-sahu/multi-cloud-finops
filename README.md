@@ -60,12 +60,18 @@ Live mode is fail-closed: if every provider returns no data and `FINOP_ALLOW_MOC
 multi-cloud-finops/
 ├── docker-compose.yml              # Full monitoring stack
 ├── Dockerfile                      # Multi-stage non-root build
+├── Makefile                        # Common dev/CI targets
 ├── pyproject.toml                  # Project metadata, lint & test config
 ├── requirements.txt                # Pinned dependencies
 ├── requirements-dev.txt            # Development & CI dependencies
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── SECURITY.md
 │
 ├── finops_engine/                  # Core package
 │   ├── config.py                   # Env-driven settings
+│   ├── errors.py                   # Domain exceptions
 │   ├── schema/
 │   │   └── focus_spec.py           # FOCUS 1.0 FocusRecord model + normalization
 │   ├── connectors/
@@ -97,7 +103,6 @@ multi-cloud-finops/
 ├── infra/                          # Terraform (parameterized, no secrets)
 ├── kubernetes/                     # Deployment + KEDA autoscaling manifests
 ├── monitoring/                     # Prometheus config, Grafana dashboard
-├── .github/workflows/ci.yml        # Lint + type-check + test matrix
 └── tests/
 ```
 
@@ -177,10 +182,11 @@ The KEDA ScaledObject scales the deployment between 1-15 replicas based on CPU (
 
 ```bash
 pip install -r requirements-dev.txt
-pytest tests/ -v
-ruff check .
-mypy finops_engine
+make check              # lint + format check + typecheck + tests
 ```
+
+Individual targets: `make lint`, `make typecheck`, `make test`, `make cov`.
+See `CONTRIBUTING.md` for the full workflow.
 
 ## Tech stack
 
@@ -198,8 +204,9 @@ mypy finops_engine
 
 ## Contributing
 
-Pull requests are welcome. For larger changes, open an issue first to discuss the approach.
+See `CONTRIBUTING.md` for the development workflow and conventions. Pull
+requests are welcome; for larger changes, open an issue first.
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE).
