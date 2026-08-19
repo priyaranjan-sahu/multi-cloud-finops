@@ -63,7 +63,7 @@ graph TD
 ### Option 1: 1-Click Docker Stack (Recommended)
 
 ```bash
-git clone https://github.com/git-ranjan/multi-cloud-finops.git
+git clone https://github.com/priyaranjan-sahu/multi-cloud-finops.git
 cd multi-cloud-finops
 docker-compose up --build
 ```
@@ -77,7 +77,7 @@ docker-compose up --build
 ### Option 2: Local Development
 
 ```bash
-git clone https://github.com/git-ranjan/multi-cloud-finops.git
+git clone https://github.com/priyaranjan-sahu/multi-cloud-finops.git
 cd multi-cloud-finops
 pip install -r requirements.txt
 uvicorn finops_engine.api.app:app --host 0.0.0.0 --port 8000 --reload
