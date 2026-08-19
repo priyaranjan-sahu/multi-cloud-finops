@@ -7,6 +7,7 @@ import pytest
 from finops_engine.connectors import (
     AWSConnector,
     AzureConnector,
+    DataFetchError,
     GCPConnector,
     MockTelemetryConnector,
     fetch_multicloud_cost,
@@ -29,7 +30,7 @@ def test_fetch_multicloud_cost_fails_closed(monkeypatch):
     for connector_cls in (AWSConnector, GCPConnector, AzureConnector):
         monkeypatch.setattr(connector_cls, "fetch_cost_data", lambda self, *args, **kwargs: [])
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(DataFetchError):
         fetch_multicloud_cost(use_mock=False, days=7)
 
 

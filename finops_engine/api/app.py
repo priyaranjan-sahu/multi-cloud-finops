@@ -26,6 +26,7 @@ from finops_engine.api.models import (
 )
 from finops_engine.config import settings
 from finops_engine.connectors import fetch_multicloud_cost
+from finops_engine.errors import ConnectorError
 from finops_engine.exporter import (
     CONTENT_TYPE_LATEST,
     FINOPS_REQUEST_COUNTER,
@@ -115,7 +116,7 @@ def _get_records(use_mock: bool | None, days: int = 30):
     mock_mode = settings.mock_mode if use_mock is None else use_mock
     try:
         return fetch_multicloud_cost(use_mock=mock_mode, days=days, allow_fallback=settings.allow_mock_fallback)
-    except RuntimeError as exc:
+    except ConnectorError as exc:
         logger.warning("No cost data available: %s", exc)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 

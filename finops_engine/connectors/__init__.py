@@ -8,6 +8,7 @@ cost data, plus the mock connector used for demos and tests.
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
+from finops_engine.errors import DataFetchError
 from finops_engine.schema.focus_spec import FocusRecord
 
 from .aws_connector import AWSConnector
@@ -15,7 +16,14 @@ from .azure_connector import AzureConnector
 from .gcp_connector import GCPConnector
 from .mock_connector import MockTelemetryConnector
 
-__all__ = ["AWSConnector", "GCPConnector", "AzureConnector", "MockTelemetryConnector", "fetch_multicloud_cost"]
+__all__ = [
+    "AWSConnector",
+    "GCPConnector",
+    "AzureConnector",
+    "MockTelemetryConnector",
+    "DataFetchError",
+    "fetch_multicloud_cost",
+]
 
 
 class CostConnector(Protocol):
@@ -36,7 +44,7 @@ def fetch_multicloud_cost(
     ``"mock"``, ``"live"``, or ``"mock-fallback"``.
 
     Fails closed: when live fetching returns no records and ``allow_fallback``
-    is False, a ``RuntimeError`` is raised instead of silently reporting
+    is False, a ``DataFetchError`` is raised instead of silently reporting
     synthetic data as real.
     """
     if use_mock:
@@ -55,6 +63,6 @@ def fetch_multicloud_cost(
     if not records:
         if allow_fallback:
             return MockTelemetryConnector(days=days).fetch_cost_data(), "mock-fallback"
-        raise RuntimeError("No cost data available from any configured cloud provider")
+        raise DataFetchError("No cost data available from any configured cloud provider")
 
     return records, "live"

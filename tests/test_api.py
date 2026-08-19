@@ -5,6 +5,7 @@ Integration tests for the FastAPI REST API endpoints.
 from fastapi.testclient import TestClient
 
 from finops_engine.api.app import app
+from finops_engine.errors import DataFetchError
 
 client = TestClient(app)
 
@@ -114,7 +115,7 @@ def test_live_mode_fails_closed_when_no_data(monkeypatch):
     app_module = sys.modules["finops_engine.api.app"]
 
     def boom(*args, **kwargs):
-        raise RuntimeError("No cost data available from any configured cloud provider")
+        raise DataFetchError("No cost data available from any configured cloud provider")
 
     monkeypatch.setattr(app_module, "fetch_multicloud_cost", boom)
 

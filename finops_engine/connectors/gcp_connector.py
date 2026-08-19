@@ -84,7 +84,7 @@ class GCPConnector:
                         )
                     )
                 except (TypeError, ValueError) as exc:
-                    logger.warning("Skipping malformed GCP record for %s: %s", service_name, exc)
+                    logger.warning("Skipping malformed GCP record: %s", exc)
         except Exception as e:
             logger.warning("GCP BigQuery billing export query failed or credentials not present (%s).", e)
 

@@ -67,7 +67,6 @@ addopts = "-v --tb=short"
 
 [tool.coverage.run]
 source = ["finops_engine"]
-omit = ["finops_engine/connectors/aws_connector.py", "finops_engine/connectors/gcp_connector.py"]
 
 [tool.coverage.report]
 show_missing = true
