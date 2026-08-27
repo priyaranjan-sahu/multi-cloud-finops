@@ -272,12 +272,38 @@ See `CONTRIBUTING.md` for the full workflow.
 See `CONTRIBUTING.md` for the development workflow and conventions. Pull
 requests are welcome; for larger changes, open an issue first.
 
-## Support
+## Support & Sponsorship
 
-If this project is useful, consider supporting the maintainer:
+If this project is useful to your organization, please consider supporting its development:
 
 [![Sponsor priyaranjan-sahu](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/priyaranjan-sahu)
+
+Sponsorship benefits include:
+- Prioritized bug fixes and feature requests.
+- Custom connector integrations.
+- Architectural review sessions for your cloud deployment.
+
+---
+
+## Roadmap & Monetization Plans (Open Core)
+
+This core engine is and will remain open-source under the MIT License. To support sustainable development, future additions will introduce paid tiers:
+
+### 🟢 Community Edition (Open Source)
+- Single-tenant FastAPI engine.
+- FOCUS 1.0 Normalization connectors (AWS, GCP, Azure).
+- Standard AI anomalies, linear forecasts, and rightsizing engines.
+- Prometheus exporter and Grafana dashboard templates.
+
+### 🔵 Pro / Enterprise Edition (Planned Commercial)
+- **Multi-Tenant Gateway**: Handle multiple clients/sub-accounts with per-tenant credentials.
+- **SQL Persistence Layer**: Long-term database storage for historical telemetry and AI predictions.
+- **Active Remediation (Auto-pilot)**: Automated actions (e.g., delete stale storage, downscale instances via lambda/functions).
+- **Enterprise Alerts**: Webhook, Slack, and Microsoft Teams notifications for anomaly detection.
+
+For commercial licensing queries or early access to Pro features, please contact the maintainer or open a GitHub Sponsor tier.
 
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
