@@ -20,8 +20,7 @@ the issue is understood.
 
 ## Operational guidance
 
-- The default is live mode (`FINOP_MOCK_MODE=false`) and it fails closed when no provider is configured. Use `FINOP_MOCK_MODE=true` only for local demos or tests.
-  billing data.
+- The default `FINOP_MOCK_MODE=true` means no live cloud credentials are required for local development. Set `FINOP_MOCK_MODE=false` only when real cloud credentials are in place; the engine fails closed when no provider is configured, so it will never silently serve mock data as real billing data.
 - Never commit credentials. Cloud SDK credentials come from the standard
   environment/credential chains, never from code.
 - When `FINOP_API_KEY` is set, all `/api/*` routes require an `X-API-Key`
