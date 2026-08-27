@@ -106,6 +106,7 @@ Runtime behavior is controlled by environment variables:
 | `FINOP_MOCK_MODE` | `false` | Use synthetic telemetry; `.env.example` enables it only for local demos |
 | `FINOP_ALLOW_MOCK_FALLBACK` | `false` | Fall back to synthetic data when live fetch returns nothing |
 | `FINOP_API_KEY` | *(empty)* | When set, all `/api/*` routes require an `X-API-Key` header |
+| `FINOP_LICENSE_KEY` | *(empty)* | License key for unlocking Pro/Enterprise features (auto-pilot, multi-tenant) |
 | `FINOP_CORS_ORIGINS` | *(empty = allow all)* | Comma-separated origin allow-list for CORS |
 | `FINOP_METRICS_REFRESH_SECONDS` | `15` | How often Prometheus metrics are recomputed |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
