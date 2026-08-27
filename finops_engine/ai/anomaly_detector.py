@@ -15,7 +15,6 @@ class AnomalyDetector:
     def __init__(self, contamination: float = 0.05, z_threshold: float = 2.5):
         self.contamination = contamination
         self.z_threshold = z_threshold
-        self.model = IsolationForest(contamination=self.contamination, random_state=42)
 
     def detect_anomalies(self, records: list[FocusRecord]) -> list[dict[str, Any]]:
         """Analyzes FOCUS records for spend anomalies and returns detailed root-cause insights."""
@@ -30,9 +29,22 @@ class AnomalyDetector:
         if len(daily) < 5:
             return []
 
-        X = daily[["billed_cost"]].values
-        self.model.fit(X)
-        daily["iforest_score"] = self.model.predict(X)
+        # ── Per-group Isolation Forest ──────────────────────────────────────
+        # Training on the full dataset mixes cost scales across providers and
+        # services, making the outlier threshold meaningless.  Instead we fit
+        # a fresh model for each (provider, service) pair so that anomaly
+        # detection operates within a homogeneous cost population.
+        iforest_flags: list[int] = []
+        for (provider, service), grp in daily.groupby(["provider_name", "service_name"]):
+            if len(grp) < 5:
+                # Not enough observations for Isolation Forest; mark as normal.
+                iforest_flags.extend([1] * len(grp))
+                continue
+            model = IsolationForest(contamination=self.contamination, random_state=42)
+            flags = model.fit_predict(grp[["billed_cost"]].values)
+            iforest_flags.extend(flags.tolist())
+
+        daily["iforest_score"] = iforest_flags
 
         daily["mean"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
             lambda x: x.shift(1).rolling(7, min_periods=3).mean()
@@ -65,3 +77,4 @@ class AnomalyDetector:
             )
 
         return sorted(results, key=lambda x: x["anomaly_excess_usd"], reverse=True)
+

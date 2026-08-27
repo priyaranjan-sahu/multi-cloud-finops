@@ -33,7 +33,7 @@ dependencies = [
     "azure-mgmt-costmanagement==4.0.1",
     "azure-identity==1.25.3",
     "prometheus-client==0.26.0",
-    "pydantic-settings>=2.0.0",
+    "pydantic-settings==2.10.1",
 ]
 
 [project.optional-dependencies]

@@ -64,13 +64,15 @@ class AzureConnector:
 
             for row in result.rows or []:
                 try:
-                    values = dict(zip(columns, row, strict=False))
+                    # Normalize column names to lowercase so the lookup is
+                    # case-insensitive regardless of Azure API version.
+                    values = {k.lower(): v for k, v in zip(columns, row, strict=False)}
                     date_str = values.get("date")
                     time_start = datetime.strptime(str(date_str), "%Y-%m-%d").replace(tzinfo=timezone.utc)
                     time_end = time_start + timedelta(days=1)
-                    billed = float(values.get("totalCost") or 0.0)
-                    usage_qty = float(values.get("usageQuantity") or 0.0)
-                    service_name = str(values.get("ServiceName") or "Unknown Service")
+                    billed = float(values.get("totalcost") or 0.0)
+                    usage_qty = float(values.get("usagequantity") or 0.0)
+                    service_name = str(values.get("servicename") or "Unknown Service")
 
                     records.append(
                         FocusRecord(

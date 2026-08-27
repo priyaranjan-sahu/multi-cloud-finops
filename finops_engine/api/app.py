@@ -229,9 +229,13 @@ def get_rightsizing_recommendations(use_mock: bool | None = None):
     return result
 
 
-@app.get("/metrics")
+@app.get("/metrics", dependencies=[Depends(verify_api_key)])
 def prometheus_metrics():
-    """Prometheus metrics scraper endpoint (served from the background refresh cache)."""
+    """Prometheus metrics scraper endpoint (served from the background refresh cache).
+
+    Protected by the same API-key gate as all /api/v1 routes so that
+    cloud spend figures are not exposed to unauthenticated scrapers.
+    """
     metrics_data = get_prometheus_metrics_bytes()
     return Response(content=metrics_data, media_type=CONTENT_TYPE_LATEST)
 
