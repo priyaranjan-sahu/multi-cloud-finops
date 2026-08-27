@@ -272,6 +272,13 @@ See `CONTRIBUTING.md` for the full workflow.
 See `CONTRIBUTING.md` for the development workflow and conventions. Pull
 requests are welcome; for larger changes, open an issue first.
 
+## Ecosystem & Companion Tools
+
+For operational and security audit capabilities that complement this FinOps engine, check out the companion tool:
+- **[Multi-Cloud Automation Scripts](https://github.com/priyaranjan-sahu/multi-cloud-automation-scripts)**: A repository of audit scripts (PowerShell, Bash, Python) designed to scan storage exposure, verify private endpoint configurations, and run compliance checks across AWS, Azure, and GCP.
+
+---
+
 ## Support & Sponsorship
 
 If this project is useful to your organization, please consider supporting its development:
