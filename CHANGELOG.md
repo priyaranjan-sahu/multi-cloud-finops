@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-28
+
+### Added
+- Zero-Config Universal Zombie Spend Detection for Pro & Enterprise tiers.
+- Cross-correlates FOCUS 1.0 telemetry to find provisioned resources with zero activity metrics.
+- Agentless detection across AWS, GCP, and Azure without requiring CloudWatch/Datadog IAM permissions.
+
 ## [1.1.0] - 2026-08-28
 
 ### Added

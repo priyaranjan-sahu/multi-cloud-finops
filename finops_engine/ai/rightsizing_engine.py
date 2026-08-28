@@ -47,6 +47,20 @@ class RightsizingEngine:
             .reset_index()
         )
 
+        # Identify zombie spend using cross-record usage unit correlation
+        zombie_stats = (
+            df.groupby(["provider_name", "service_name", "service_category", "resource_id"], dropna=False)
+            .agg(
+                total_cost=("billed_cost", "sum"),
+                has_uptime=("usage_unit", lambda x: x.str.lower().isin(["hours", "month", "vcpu-hours"]).any()),
+                has_activity=(
+                    "usage_unit",
+                    lambda x: x.str.lower().isin(["gb", "bytes", "requests", "iops", "count"]).any(),
+                ),
+            )
+            .reset_index()
+        )
+
         # Utilization baseline per resource: cost per usage unit.
         grouped["cost_per_usage"] = grouped.apply(
             lambda row: (row["billed_cost"] / row["usage_quantity"]) if row["usage_quantity"] > 0 else float("inf"),
@@ -175,6 +189,25 @@ class RightsizingEngine:
                     cost,
                     self.ri_discount_pct,
                     "High (consistent 24/7 workload detected)",
+                )
+
+        # Zero-Config Universal Zombie Spend Detection
+        for _, row in zombie_stats.iterrows():
+            cost = float(row["total_cost"])
+            if cost >= self.high_cost_threshold_usd and row["has_uptime"] and not row["has_activity"]:
+                # The mathematical heuristic has proven this resource has provisioned uptime but 0 activity metrics
+                # We flag it regardless of what category or service name the cloud provider assigned it.
+                cat_display = str(row["service_category"]).capitalize()
+                add_recommendation(
+                    str(row["provider_name"]),
+                    f"Zombie Spend ({cat_display})",
+                    str(row["service_name"]),
+                    str(row["resource_id"]),
+                    f"Terminate idle {cat_display} resource (0 throughput/activity detected in billing telemetry)",
+                    cost,
+                    1.0,
+                    "Medium (Provisioned uptime billed but exactly 0 activity/transfer metrics. "
+                    "Verify if internal-only)",
                 )
 
         recommendations.sort(key=lambda r: r["estimated_monthly_savings_usd"], reverse=True)

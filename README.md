@@ -40,6 +40,7 @@ Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GC
 | Cost aggregation | Multi-cloud spend consolidated into FOCUS 1.0 records via the AWS Cost Explorer, GCP BigQuery billing export, and Azure Cost Management APIs |
 | Anomaly detection | Isolation Forest plus a rolling z-score check, with severity classification |
 | Cost forecasting | 30/60/90-day projections with 95% prediction intervals |
+| Zombie detection | Agentless zero-config cross-correlation of FOCUS telemetry to find provisioned resources with zero activity metrics (idle NAT gateways, orphaned LBs, warm containers, idle DBs) |
 | Rightsizing | Recommendations across storage, compute, container, and commitment spend, with estimated monthly savings |
 | Spot optimization | Estimated savings from spot / preemptible workload migration |
 | Monitoring | Background metrics exporter feeding Prometheus, with auto-provisioned Grafana dashboards |
@@ -106,7 +107,7 @@ Runtime behavior is controlled by environment variables:
 | `FINOP_MOCK_MODE` | `false` | Use synthetic telemetry; `.env.example` enables it only for local demos |
 | `FINOP_ALLOW_MOCK_FALLBACK` | `false` | Fall back to synthetic data when live fetch returns nothing |
 | `FINOP_API_KEY` | *(empty)* | When set, all `/api/*` routes require an `X-API-Key` header |
-| `FINOP_LICENSE_KEY` | *(empty)* | Pro/Enterprise license key (format: `FINOP_PRO_LICENSE_KEY_<token>`). Unlocks: Multi-Cloud Aggregation, Rightsizing API & CLI, Anomaly Detection CLI, Cost Forecasting CLI, Spot Optimization CLI, Export CLI. Obtain via [GitHub Sponsors](https://github.com/sponsors/priyaranjan-sahu) |
+| `FINOP_LICENSE_KEY` | *(empty)* | Pro/Enterprise license key (format: `FINOP_PRO_LICENSE_KEY_<token>`). Unlocks: Multi-Cloud Aggregation, Zero-Config Zombie Detection, Rightsizing API & CLI, Anomaly Detection CLI, Cost Forecasting CLI, Spot Optimization CLI, Export CLI. Obtain via [GitHub Sponsors](https://github.com/sponsors/priyaranjan-sahu) |
 | `FINOP_CORS_ORIGINS` | *(empty = allow all)* | Comma-separated origin allow-list for CORS |
 | `FINOP_METRICS_REFRESH_SECONDS` | `15` | How often Prometheus metrics are recomputed |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
@@ -127,7 +128,7 @@ multi-cloud-finops/
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── SECURITY.md
-├── social-preview.png              # Repository social preview image
+├── social-preview.jpg              # Repository social preview image
 ├── assets/
 │   └── terminal-demo.svg           # README demo image
 │
@@ -240,7 +241,7 @@ kubectl apply -f kubernetes/finops-runtime-config.yaml
 kubectl apply -f kubernetes/deployment.yaml
 kubectl apply -f kubernetes/keda_autoscaler.yaml
 ```
-Replace `ghcr.io/your-org/multi-cloud-finops:1.1.0` with your published immutable image tag before applying the deployment.
+Replace `ghcr.io/your-org/multi-cloud-finops:1.2.0` with your published immutable image tag before applying the deployment.
 
 The KEDA ScaledObject scales the deployment between 1-15 replicas based on CPU (70%) and memory (80%) utilization thresholds.
 
@@ -291,7 +292,7 @@ If this project is useful to your organization, please consider supporting its d
 We offer several tiers to suit individuals, small teams, and enterprises:
 
 *   **☕ $10 / month (Supporter):** Show your support! Get an official GitHub Sponsor badge and recognition in our contributors list.
-*   **🚀 $39 / month (Pro Individual):** Obtain a cryptographically signed **`FINOP_LICENSE_KEY`** to unlock all self-hosted Pro features. Includes priority email support and access to a private Discord channel.
+*   **🚀 $39 / month (Pro Individual):** Obtain a cryptographically signed **`FINOP_LICENSE_KEY`** to unlock all self-hosted Pro features (including Zero-Config Zombie Spend Detection and automated Rightsizing). Includes priority email support and access to a private Discord channel.
 *   **💼 $99 / month (Team):** Unlocks Pro features for your entire team. Includes up to 4 hours of custom setup/integration video support and priority response (24h SLA).
 *   **🏢 $299 / month (Enterprise):** Full enterprise consulting. Includes monthly 1-hour architecture & optimization review calls, direct input on the project roadmap, 4-hour SLA for critical issues, and your company logo prominently displayed below!
 
