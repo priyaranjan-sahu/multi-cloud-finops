@@ -53,7 +53,10 @@ class RightsizingEngine:
             .agg(
                 total_cost=("billed_cost", "sum"),
                 has_uptime=("usage_unit", lambda x: x.str.lower().isin(["hours", "month", "vcpu-hours"]).any()),
-                has_activity=("usage_unit", lambda x: x.str.lower().isin(["gb", "bytes", "requests", "iops", "count"]).any()),
+                has_activity=(
+                    "usage_unit",
+                    lambda x: x.str.lower().isin(["gb", "bytes", "requests", "iops", "count"]).any(),
+                ),
             )
             .reset_index()
         )
