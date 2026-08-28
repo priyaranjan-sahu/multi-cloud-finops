@@ -191,44 +191,23 @@ class RightsizingEngine:
                     "High (consistent 24/7 workload detected)",
                 )
 
-        # Zombie Spend Detection
+        # Zero-Config Universal Zombie Spend Detection
         for _, row in zombie_stats.iterrows():
             cost = float(row["total_cost"])
             if cost >= self.high_cost_threshold_usd and row["has_uptime"] and not row["has_activity"]:
-                cat = str(row["service_category"]).lower()
-                if cat == "network":
-                    add_recommendation(
-                        str(row["provider_name"]),
-                        "Zombie Spend (Network)",
-                        str(row["service_name"]),
-                        str(row["resource_id"]),
-                        "Delete orphaned Load Balancer / NAT Gateway / Elastic IP (0 bytes processed)",
-                        cost,
-                        1.0,
-                        "High (Uptime billed but zero network data transfer)",
-                    )
-                elif cat in ["compute", "container"]:
-                    add_recommendation(
-                        str(row["provider_name"]),
-                        "Zombie Spend (Compute)",
-                        str(row["service_name"]),
-                        str(row["resource_id"]),
-                        "Terminate idle compute instance or disable provisioned concurrency (0 network outbound)",
-                        cost,
-                        1.0,
-                        "Medium (Uptime billed but no network/processing activity. Verify if internal-only workload)",
-                    )
-                elif cat == "database":
-                    add_recommendation(
-                        str(row["provider_name"]),
-                        "Zombie Spend (Database)",
-                        str(row["service_name"]),
-                        str(row["resource_id"]),
-                        "Pause or snapshot & terminate idle database (0 IOPS / 0 Requests)",
-                        cost,
-                        1.0,
-                        "High (Uptime billed but zero queries/IOPS executed)",
-                    )
+                # The mathematical heuristic has proven this resource has provisioned uptime but 0 activity metrics
+                # We flag it regardless of what category or service name the cloud provider assigned it.
+                cat_display = str(row["service_category"]).capitalize()
+                add_recommendation(
+                    str(row["provider_name"]),
+                    f"Zombie Spend ({cat_display})",
+                    str(row["service_name"]),
+                    str(row["resource_id"]),
+                    f"Terminate idle {cat_display} resource (0 throughput/activity detected in billing telemetry)",
+                    cost,
+                    1.0,
+                    "Medium (Provisioned uptime billed but exactly 0 activity/transfer metrics. Verify if internal-only)",
+                )
 
         recommendations.sort(key=lambda r: r["estimated_monthly_savings_usd"], reverse=True)
         recommendations = recommendations[: self.max_recommendations]
