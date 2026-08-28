@@ -1,0 +1,120 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "multi-cloud-finops-dashboard",
+    "title": "Multi-Cloud FinOps & Cost Intelligence Platform",
+    "tags": ["finops", "aws", "gcp", "azure", "cost-optimization"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Multi-Cloud Spend (USD)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+        "targets": [
+          { "expr": "sum(finops_cloud_cost_usd)", "legendFormat": "Total Spend" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "orange", "value": 5000 },
+                { "color": "red", "value": 10000 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Active Cost Anomalies Detected",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+        "targets": [
+          { "expr": "sum(finops_anomalies_active_count)", "legendFormat": "Active Anomalies" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "green", "value": null },
+                { "color": "red", "value": 1 }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Potential Monthly Savings Identified ($ ROI)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+        "targets": [
+          { "expr": "sum(finops_potential_savings_usd)", "legendFormat": "Potential Savings" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "blue", "value": null }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "API Request Throughput",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+        "targets": [
+          { "expr": "sum(finops_api_requests_total)", "legendFormat": "API Hits" }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Multi-Cloud Spend Distribution by Provider & Service",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+        "targets": [
+          { "expr": "finops_cloud_cost_usd", "legendFormat": "{{provider}} - {{service}}" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 15
+            }
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Potential Savings Breakdown by Waste Vector",
+        "type": "bargauge",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+        "targets": [
+          { "expr": "finops_potential_savings_usd", "legendFormat": "{{provider}} - {{category}}" }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      }
+    ]
+  }
+}

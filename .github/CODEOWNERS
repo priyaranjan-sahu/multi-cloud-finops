@@ -1,0 +1,8 @@
+# Default reviewers for the whole repository.
+* @priyaranjan-sahu
+
+# CI configuration changes.
+.github/workflows/ @priyaranjan-sahu
+
+# Cloud connector code.
+finops_engine/connectors/ @priyaranjan-sahu

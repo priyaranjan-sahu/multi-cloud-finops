@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" viewBox="0 0 960 430" role="img" aria-label="multi-cloud-finops CLI and API demo">
+  <title>multi-cloud-finops demo</title>
+  <rect width="960" height="430" rx="12" fill="#0d1117"/>
+  <rect y="0" width="960" height="38" rx="12" fill="#161b22"/>
+  <rect y="26" width="960" height="12" fill="#161b22"/>
+  <circle cx="24" cy="19" r="6" fill="#ff5f56"/>
+  <circle cx="46" cy="19" r="6" fill="#ffbd2e"/>
+  <circle cx="68" cy="19" r="6" fill="#27c93f"/>
+  <text x="480" y="25" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#8b949e">finops - CLI demo</text>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14">
+    <text x="36" y="72" fill="#3fb950">$</text>
+    <text x="56" y="72" fill="#e6edf3">python -m scripts.anomaly_detection --days 90</text>
+
+    <text x="36" y="94" fill="#8b949e">Fetching 90 days of telemetry for anomaly detection...</text>
+    <text x="36" y="116" fill="#8b949e">Running Isolation Forest + z-score detection...</text>
+    <text x="36" y="138" fill="#8b949e">Detected 2 anomalies:</text>
+
+    <text x="52" y="160" fill="#e6edf3">[1] 2026-07-25 | AWS - AmazonEC2: actual </text>
+    <text x="428" y="160" fill="#ffa657">$1,248.50</text>
+    <text x="528" y="160" fill="#e6edf3"> vs expected </text>
+    <text x="640" y="160" fill="#ffa657">$285.00</text>
+    <text x="740" y="160" fill="#e6edf3"> [</text>
+    <text x="760" y="160" fill="#ff7b72">HIGH</text>
+    <text x="808" y="160" fill="#e6edf3">]</text>
+
+    <text x="52" y="182" fill="#e6edf3">[2] 2026-08-02 | GCP - BigQuery: actual </text>
+    <text x="424" y="182" fill="#ffa657">$890.12</text>
+    <text x="524" y="182" fill="#e6edf3"> vs expected </text>
+    <text x="640" y="182" fill="#ffa657">$312.40</text>
+    <text x="740" y="182" fill="#e6edf3"> [</text>
+    <text x="760" y="182" fill="#d29922">MEDIUM</text>
+    <text x="828" y="182" fill="#e6edf3">]</text>
+
+    <text x="36" y="232" fill="#3fb950">$</text>
+    <text x="56" y="232" fill="#e6edf3">curl -s http://localhost:8000/api/v1/costs/summary?days=30</text>
+
+    <text x="36" y="254" fill="#8b949e">{"period_days":30,"total_billed_cost_usd":128560.0,</text>
+    <text x="36" y="276" fill="#8b949e"> "total_records_processed":2230,"data_source":"mock"}</text>
+
+    <text x="36" y="318" fill="#3fb950">$</text>
+    <text x="36" y="318" fill="#e6edf3">█</text>
+  </g>
+</svg>

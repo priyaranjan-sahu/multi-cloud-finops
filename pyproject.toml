@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "multi-cloud-finops"
+version = "1.1.0"
+description = "Enterprise Open-Core Multi-Cloud FinOps Platform"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Priyaranjan Sahu" }]
+keywords = ["finops", "cloud-cost", "anomaly-detection", "forecasting", "rightsizing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastapi==0.141.1",
+    "uvicorn[standard]==0.52.4",
+    "pydantic==2.13.4",
+    "pandas==2.3.3",
+    "numpy==2.2.6",
+    "scipy==1.15.3",
+    "scikit-learn==1.7.2",
+    "boto3==1.43.74",
+    "google-cloud-bigquery==3.43.0",
+    "azure-mgmt-costmanagement==4.0.1",
+    "azure-identity==1.25.3",
+    "prometheus-client==0.26.0",
+    "pydantic-settings==2.10.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+    "pytest-cov==7.1.0",
+    "httpx==0.28.1",
+    "ruff==0.16.3",
+    "mypy==2.3.1",
+]
+
+[tool.setuptools.packages.find]
+include = ["finops_engine*", "scripts*", "src*"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+exclude = ["infra", "kubernetes", "monitoring", "output"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["B008"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+exclude = ["tests", "infra", "kubernetes", "monitoring", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["finops_engine"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

@@ -1,0 +1,22 @@
+# Copy to terraform.tfvars and fill in your real values.
+# Required before `terraform apply`: subnet IDs, launch template, instance template.
+
+environment   = "production"
+
+# AWS
+region                  = "us-east-1"
+bucket_name             = "multi-cloud-finops-telemetry-<random-suffix>"
+vpc_zone_identifier     = ["subnet-XXXXXXXXXXXXX", "subnet-YYYYYYYYYYYYY"]
+launch_template_id      = "lt-XXXXXXXXXXXXXXXXX"
+
+# GCP
+gcp_project     = "your-gcp-project"
+gcp_region      = "us-central1"
+gcs_bucket_name = "multi-cloud-finops-gcs-billing-<random-suffix>"
+gcp_instance_template = "projects/your-gcp-project/global/instanceTemplates/finops-template"
+
+# Azure
+azure_location          = "East US"
+azure_resource_group    = "rg-finops"
+vmss_admin_username     = "finopsadmin"
+vmss_admin_ssh_public_key = "ssh-rsa AAAA...your-public-key"

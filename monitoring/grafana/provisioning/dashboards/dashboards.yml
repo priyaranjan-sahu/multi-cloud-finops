@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: FinOps Dashboards
+    orgId: 1
+    folder: FinOps
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
