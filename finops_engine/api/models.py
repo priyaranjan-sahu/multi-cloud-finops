@@ -1,8 +1,10 @@
 """Pydantic response models for the API endpoints."""
 
+from typing import Any
+
 from pydantic import BaseModel
 
-from finops_engine.schema.focus_spec import FocusRecord
+from finops_engine.schema.focus_spec import CloudProvider, FocusRecord
 
 
 class HealthResponse(BaseModel):
@@ -86,3 +88,40 @@ class RightsizingResponse(BaseModel):
     recommendations_count: int
     data_source: str
     recommendations: list[RightsizingRecommendation]
+
+
+class DeploymentEventCreateRequest(BaseModel):
+    provider: CloudProvider = CloudProvider.GCP
+    service_name: str
+    resource_id: str
+    environment: str = "production"
+    commit_sha: str | None = None
+    author: str | None = None
+    change_summary: str
+    diff_metadata: dict[str, Any] = {}
+
+
+class DeploymentEventListResponse(BaseModel):
+    events_count: int
+    events: list[dict[str, Any]]
+
+
+class ChangeAttributionItem(BaseModel):
+    attribution_id: str
+    resource_id: str
+    provider: str
+    service: str
+    cost_shift_daily_usd: float
+    estimated_monthly_impact_usd: float
+    confidence: str
+    detected_date: str
+    deployment_event: dict[str, Any]
+    root_cause_narrative: str
+    actionable_remediation: str
+
+
+class ChangeAttributionResponse(BaseModel):
+    total_attributions_count: int
+    total_monthly_impact_usd: float
+    data_source: str
+    attributions: list[ChangeAttributionItem]

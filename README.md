@@ -39,6 +39,7 @@ Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GC
 |---|---|
 | Cost aggregation | Multi-cloud spend consolidated into FOCUS 1.0 records via the AWS Cost Explorer, GCP BigQuery billing export, and Azure Cost Management APIs |
 | Anomaly detection | Isolation Forest plus a rolling z-score check, with severity classification |
+| Change intelligence | Correlates spend shifts with deployment events, commit SHAs, authors, and configuration diffs (e.g. min-instances 0 -> 1) |
 | Cost forecasting | 30/60/90-day projections with 95% prediction intervals |
 | Zombie detection | Agentless zero-config cross-correlation of FOCUS telemetry to find provisioned resources with zero activity metrics (idle NAT gateways, orphaned LBs, warm containers, idle DBs) |
 | Rightsizing | Recommendations across storage, compute, container, and commitment spend, with estimated monthly savings |
@@ -136,6 +137,7 @@ multi-cloud-finops/
 │   ├── config.py                   # Env-driven settings
 │   ├── errors.py                   # Domain exceptions
 │   ├── schema/
+│   │   ├── deployment_event.py     # Deployment event schema
 │   │   └── focus_spec.py           # FOCUS 1.0 FocusRecord model + normalization
 │   ├── connectors/
 │   │   ├── aws_connector.py        # AWS Cost Explorer (boto3)
@@ -145,6 +147,7 @@ multi-cloud-finops/
 │   │   └── __init__.py             # Fail-closed multi-provider gateway
 │   ├── ai/
 │   │   ├── anomaly_detector.py     # IsolationForest + z-score
+│   │   ├── change_intelligence.py  # Deployment-to-cost attribution
 │   │   ├── cost_forecaster.py      # Linear regression + prediction intervals
 │   │   └── rightsizing_engine.py   # Waste-vector analysis
 │   ├── exporter/
@@ -155,6 +158,7 @@ multi-cloud-finops/
 │
 ├── scripts/                        # CLI tools (python -m scripts.<tool>)
 │   ├── anomaly_detection.py
+│   ├── change_intelligence.py
 │   ├── cost_forecasting.py
 │   ├── rightsizing.py
 │   ├── spot_optimization.py
@@ -178,8 +182,11 @@ Interactive docs are served at `/docs`. Every response includes a `data_source` 
 | `GET` | `/` | Health check and service info |
 | `GET` | `/api/v1/costs/summary` | Aggregated spend by provider, service, region |
 | `GET` | `/api/v1/costs/focus-export` | FOCUS 1.0 telemetry export (paginated via `limit`/`offset`) |
+| `POST` | `/api/v1/events/deployments` | Register deployment event (CI/CD webhook / audit log) |
+| `GET` | `/api/v1/events/deployments` | List recorded deployment events |
 | `GET` | `/api/v1/anomalies/detect` | Anomaly detection with severity and baseline deviation |
 | `GET` | `/api/v1/forecast/predict` | Spend projection with confidence bounds |
+| `GET` | `/api/v1/intelligence/change-attribution` | Change Intelligence: attribute cost shifts to deploy diffs |
 | `GET` | `/api/v1/recommendations/rightsizing` | Rightsizing actions with estimated monthly savings |
 | `GET` | `/metrics` | Prometheus scrape endpoint |
 
@@ -209,6 +216,7 @@ Interactive docs are served at `/docs`. Every response includes a `data_source` 
 
 ```bash
 python -m scripts.anomaly_detection --days 90
+python -m scripts.change_intelligence --days 30 --window-days 7
 python -m scripts.cost_forecasting --history-days 180 --forecast-days 90
 python -m scripts.rightsizing --days 90
 python -m scripts.spot_optimization --days 90 --discount-pct 0.65

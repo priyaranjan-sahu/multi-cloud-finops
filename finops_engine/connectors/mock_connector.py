@@ -7,6 +7,7 @@ across the observation window.
 import random
 from datetime import datetime, timedelta, timezone
 
+from finops_engine.schema.deployment_event import DeploymentEvent
 from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord, categorize_service
 
 
@@ -77,3 +78,33 @@ class MockTelemetryConnector:
             current_dt = next_dt
 
         return records
+
+    def fetch_deployment_events(self) -> list[DeploymentEvent]:
+        """Generates realistic synthetic deployment events for change attribution."""
+        now = datetime.now(timezone.utc)
+        return [
+            DeploymentEvent(
+                event_id="DEP-GCP-8492",
+                timestamp=now - timedelta(days=2),
+                provider=CloudProvider.GCP,
+                service_name="Compute Engine",
+                resource_id="gcp-compute-engine-prod-001",
+                environment="production",
+                commit_sha="a9f4c1208b5e",
+                author="devops@company.internal",
+                change_summary="autoscaling: min-instances 0 -> 1 after load test",
+                diff_metadata={"property": "min_instances", "previous": 0, "current": 1},
+            ),
+            DeploymentEvent(
+                event_id="DEP-AWS-3190",
+                timestamp=now - timedelta(days=5),
+                provider=CloudProvider.AWS,
+                service_name="AmazonEC2",
+                resource_id="aws-amazonec2-prod-001",
+                environment="production",
+                commit_sha="7b12e841fa01",
+                author="infra-lead@company.internal",
+                change_summary="instance family upgrade: c5.large -> c5.4xlarge",
+                diff_metadata={"property": "instance_type", "previous": "c5.large", "current": "c5.4xlarge"},
+            ),
+        ]

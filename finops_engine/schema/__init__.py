@@ -1,3 +1,4 @@
+from .deployment_event import DeploymentEvent
 from .focus_spec import (
     ChargeCategory,
     CloudProvider,
@@ -7,6 +8,7 @@ from .focus_spec import (
 )
 
 __all__ = [
+    "DeploymentEvent",
     "FocusRecord",
     "ChargeCategory",
     "CloudProvider",

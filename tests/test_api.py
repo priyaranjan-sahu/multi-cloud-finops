@@ -95,6 +95,45 @@ def test_rightsizing_requires_license():
     assert response.status_code == 402
 
 
+def test_register_and_list_deployment_events():
+    payload = {
+        "provider": "GCP",
+        "service_name": "Cloud Run",
+        "resource_id": "gcp-cloud-run-orders-api",
+        "environment": "production",
+        "commit_sha": "f1a2b3c4d5e6",
+        "author": "devops@company.internal",
+        "change_summary": "min-instances 0 -> 1",
+        "diff_metadata": {"min_instances": 1},
+    }
+    post_res = client.post("/api/v1/events/deployments", json=payload)
+    assert post_res.status_code == 200
+    assert post_res.json()["status"] == "recorded"
+    assert "event_id" in post_res.json()
+
+    list_res = client.get("/api/v1/events/deployments")
+    assert list_res.status_code == 200
+    assert list_res.json()["events_count"] >= 1
+
+
+def test_change_attribution_endpoint(monkeypatch):
+    import sys
+
+    app_module = sys.modules["finops_engine.api.app"]
+    monkeypatch.setattr(app_module, "verify_pro_license", lambda *_: None)
+    response = client.get("/api/v1/intelligence/change-attribution?days=30&use_mock=true")
+    assert response.status_code == 200
+    data = response.json()
+    assert "total_attributions_count" in data
+    assert "total_monthly_impact_usd" in data
+    assert isinstance(data["attributions"], list)
+
+
+def test_change_attribution_requires_license():
+    response = client.get("/api/v1/intelligence/change-attribution?days=30&use_mock=true")
+    assert response.status_code == 402
+
+
 def test_prometheus_metrics_endpoint():
     response = client.get("/metrics")
     assert response.status_code == 200

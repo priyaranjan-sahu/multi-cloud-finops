@@ -140,3 +140,14 @@ def test_cli_export_recommendations_is_gated(monkeypatch):
 
     with pytest.raises(LicenseError):
         export_rightsizing_recommendations(days=7)
+
+
+def test_cli_change_intelligence_is_gated(monkeypatch):
+    """scripts.change_intelligence must call verify_pro_license before doing any work."""
+    from finops_engine.config import settings
+
+    monkeypatch.setattr(settings, "license_key", "")
+    from scripts.change_intelligence import run_change_intelligence_analysis
+
+    with pytest.raises(LicenseError):
+        run_change_intelligence_analysis(days=7)

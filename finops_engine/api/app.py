@@ -17,16 +17,20 @@ from fastapi.responses import StreamingResponse
 from fastapi.security import APIKeyHeader
 
 from finops_engine import __version__
-from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
+from finops_engine.ai import AnomalyDetector, ChangeIntelligenceEngine, CostForecaster, RightsizingEngine
 from finops_engine.api.models import (
     AnomalyDetectionResponse,
+    ChangeAttributionResponse,
     CostSummaryResponse,
+    DeploymentEventCreateRequest,
+    DeploymentEventListResponse,
     ForecastResponse,
     HealthResponse,
     RightsizingResponse,
 )
 from finops_engine.config import settings
 from finops_engine.connectors import fetch_multicloud_cost
+from finops_engine.connectors.mock_connector import MockTelemetryConnector
 from finops_engine.errors import ConnectorError, LicenseError
 from finops_engine.exporter import (
     CONTENT_TYPE_LATEST,
@@ -36,6 +40,7 @@ from finops_engine.exporter import (
 )
 from finops_engine.license import verify_pro_license
 from finops_engine.schema import normalize_to_focus_dataframe
+from finops_engine.schema.deployment_event import DeploymentEvent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("finops.api")
@@ -263,6 +268,70 @@ async def get_rightsizing_recommendations(use_mock: bool | None = None):
 
     result = await run_in_threadpool(_process)
     return result
+
+
+_deployment_events_store: list[DeploymentEvent] = []
+
+
+@api_router.post("/events/deployments")
+async def register_deployment_event(request: DeploymentEventCreateRequest):
+    """Ingest a deployment event from CI/CD webhooks or audit logs."""
+    FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/events/deployments").inc()
+    event = DeploymentEvent(
+        provider=request.provider,
+        service_name=request.service_name,
+        resource_id=request.resource_id,
+        environment=request.environment,
+        commit_sha=request.commit_sha,
+        author=request.author,
+        change_summary=request.change_summary,
+        diff_metadata=request.diff_metadata,
+    )
+    _deployment_events_store.append(event)
+    return {"status": "recorded", "event_id": event.event_id, "event": event.to_dict()}
+
+
+@api_router.get("/events/deployments", response_model=DeploymentEventListResponse)
+async def list_deployment_events(use_mock: bool | None = None):
+    """List registered deployment events."""
+    FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/events/deployments").inc()
+    mock_mode = settings.mock_mode if use_mock is None else use_mock
+    events = list(_deployment_events_store)
+    if mock_mode and not events:
+        events.extend(MockTelemetryConnector().fetch_deployment_events())
+    return {"events_count": len(events), "events": [e.to_dict() for e in events]}
+
+
+@api_router.get("/intelligence/change-attribution", response_model=ChangeAttributionResponse)
+async def get_change_attribution(
+    days: int = Query(default=30, ge=7, le=90),
+    correlation_window_days: int = Query(default=7, ge=1, le=30),
+    use_mock: bool | None = None,
+):
+    """Run Change Intelligence to attribute cost shifts directly to deployment events."""
+    verify_pro_license("Change Intelligence API")
+    FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/intelligence/change-attribution").inc()
+
+    def _process():
+        records, source = _get_records(use_mock, days)
+        events = list(_deployment_events_store)
+        mock_mode = settings.mock_mode if use_mock is None else use_mock
+        if (mock_mode or not events) and source in ("mock", "mock-fallback"):
+            events.extend(MockTelemetryConnector().fetch_deployment_events())
+
+        engine = ChangeIntelligenceEngine(correlation_window_days=correlation_window_days)
+        attributions = engine.attribute_cost_changes(records, events)
+        total_impact = round(sum(item["estimated_monthly_impact_usd"] for item in attributions), 2)
+        return attributions, total_impact, source
+
+    attributions, total_impact, source = await run_in_threadpool(_process)
+
+    return {
+        "total_attributions_count": len(attributions),
+        "total_monthly_impact_usd": total_impact,
+        "data_source": source,
+        "attributions": attributions,
+    }
 
 
 @app.get("/metrics", dependencies=[Depends(verify_api_key)])
