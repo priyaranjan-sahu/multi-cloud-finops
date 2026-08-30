@@ -7,6 +7,7 @@ from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_cost_prediction(forecast_days: int = 30, history_days: int = 60) -> dict:
+    """Executes CLI spend forecasting with parametric confidence bounds."""
     print(f"Fetching {history_days} days of historical cost data for a {forecast_days}-day forecast...")
     connector = MockTelemetryConnector(days=history_days)
     records = connector.fetch_cost_data()

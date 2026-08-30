@@ -9,6 +9,8 @@ logger = logging.getLogger("finops.connectors.aws")
 
 
 class AWSConnector:
+    """Connects to AWS Cost Explorer API and normalizes billing metrics to FOCUS 1.0."""
+
     def __init__(self, region_name: str = "us-east-1", account_id: str = ""):
         self.region_name = region_name
         self.account_id = account_id

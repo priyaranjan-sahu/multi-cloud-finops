@@ -46,6 +46,8 @@ FINOPS_REQUEST_COUNTER = Counter(
 
 
 class MetricsCache(TypedDict):
+    """In-memory cache for Prometheus serialized scrape payload."""
+
     content: bytes | None
     last_refresh: float
 
@@ -84,6 +86,7 @@ def update_finops_metrics() -> None:
 
 
 def _refresh_cached_metrics() -> None:
+    """Updates the internal Prometheus registry and stores the serialized scrape payload."""
     update_finops_metrics()
     _metrics_cache["content"] = generate_latest()
     _metrics_cache["last_refresh"] = time.monotonic()

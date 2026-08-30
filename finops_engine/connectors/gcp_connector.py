@@ -9,6 +9,8 @@ logger = logging.getLogger("finops.connectors.gcp")
 
 
 class GCPConnector:
+    """Connects to GCP BigQuery Billing Export and normalizes multi-project spend to FOCUS 1.0."""
+
     def __init__(self, project_id: str = "default-gcp-project", billing_table: str | None = None):
         self.project_id = project_id
         self.billing_table = billing_table or f"{project_id}.billing.gcp_billing_export_v1"

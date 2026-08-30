@@ -9,6 +9,8 @@ logger = logging.getLogger("finops.connectors.azure")
 
 
 class AzureConnector:
+    """Connects to Azure Cost Management API and normalizes billing datasets to FOCUS 1.0."""
+
     def __init__(self, subscription_id: str = "default-azure-subscription"):
         self.subscription_id = subscription_id
 

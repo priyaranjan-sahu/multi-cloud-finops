@@ -16,6 +16,8 @@ from finops_engine.schema.focus_spec import FocusRecord, normalize_to_focus_data
 
 
 class CostForecaster:
+    """Predictive spend model using linear trend estimation and parametric confidence intervals."""
+
     def __init__(self, forecast_days: int = 30):
         self.forecast_days = forecast_days
         self.model = LinearRegression()

@@ -1,4 +1,4 @@
-"""Pydantic response models for the API endpoints."""
+"""Pydantic response models for the Community FinOps API endpoints."""
 
 from pydantic import BaseModel
 
@@ -6,6 +6,8 @@ from finops_engine.schema.focus_spec import FocusRecord
 
 
 class HealthResponse(BaseModel):
+    """System health check and OpenAPI service metadata."""
+
     status: str
     service: str
     version: str
@@ -15,6 +17,8 @@ class HealthResponse(BaseModel):
 
 
 class CostSummaryResponse(BaseModel):
+    """Aggregated spend summary across multi-cloud providers, services, and regions."""
+
     period_days: int
     total_billed_cost_usd: float
     spend_by_provider: dict[str, float]
@@ -25,6 +29,8 @@ class CostSummaryResponse(BaseModel):
 
 
 class FocusExportResponse(BaseModel):
+    """Paginated export of normalized FOCUS 1.0 cost records."""
+
     focus_version: str
     record_count: int
     data_source: str
@@ -32,6 +38,8 @@ class FocusExportResponse(BaseModel):
 
 
 class AnomalyItem(BaseModel):
+    """Individual spend anomaly detection event with root-cause insights."""
+
     date: str
     provider: str
     service: str
@@ -44,6 +52,8 @@ class AnomalyItem(BaseModel):
 
 
 class AnomalyDetectionResponse(BaseModel):
+    """Detection results across the requested historical analysis window."""
+
     analyzed_days: int
     anomalies_detected_count: int
     data_source: str
@@ -51,6 +61,8 @@ class AnomalyDetectionResponse(BaseModel):
 
 
 class ForecastItem(BaseModel):
+    """Projected daily cost data point with 95% confidence bounds."""
+
     date: str
     predicted_cost_usd: float
     confidence_upper_usd: float
@@ -58,6 +70,8 @@ class ForecastItem(BaseModel):
 
 
 class ForecastResponse(BaseModel):
+    """Forward-looking spend forecast with summary metrics."""
+
     forecast_days: int
     total_projected_spend_usd: float
     average_daily_projected_usd: float

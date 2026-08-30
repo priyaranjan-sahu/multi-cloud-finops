@@ -1,3 +1,5 @@
+"""FOCUS 1.0 open cost schema specifications and normalization utilities."""
+
 from .focus_spec import (
     ChargeCategory,
     CloudProvider,

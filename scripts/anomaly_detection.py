@@ -7,6 +7,7 @@ from finops_engine.connectors import MockTelemetryConnector
 
 
 def run_anomaly_detection(days: int = 90, contamination: float = 0.05, z_threshold: float = 2.0) -> list:
+    """Executes CLI anomaly detection across historical FOCUS cost data."""
     print(f"Fetching {days} days of telemetry for anomaly detection...")
     connector = MockTelemetryConnector(days=days)
     records = connector.fetch_cost_data()

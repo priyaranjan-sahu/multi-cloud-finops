@@ -1,3 +1,5 @@
+"""Prometheus metrics exporter and background telemetry collectors."""
+
 from .metrics_exporter import (
     CONTENT_TYPE_LATEST,
     FINOPS_REQUEST_COUNTER,

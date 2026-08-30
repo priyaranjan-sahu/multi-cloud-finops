@@ -12,6 +12,8 @@ from finops_engine.schema.focus_spec import FocusRecord, normalize_to_focus_data
 
 
 class AnomalyDetector:
+    """Statistical and unsupervised machine learning detector for cloud spend anomalies."""
+
     def __init__(self, contamination: float = 0.05, z_threshold: float = 2.5):
         self.contamination = contamination
         self.z_threshold = z_threshold

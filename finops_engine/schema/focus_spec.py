@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 
 
 class ChargeCategory(str, Enum):
+    """Standard FOCUS 1.0 charge categories."""
+
     USAGE = "Usage"
     PURCHASE = "Purchase"
     TAX = "Tax"
@@ -16,6 +18,8 @@ class ChargeCategory(str, Enum):
 
 
 class CloudProvider(str, Enum):
+    """Supported cloud infrastructure providers."""
+
     AWS = "AWS"
     GCP = "GCP"
     AZURE = "Azure"
