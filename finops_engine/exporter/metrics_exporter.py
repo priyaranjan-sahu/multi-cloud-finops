@@ -102,12 +102,12 @@ def get_prometheus_metrics_bytes() -> bytes:
     return content
 
 
-async def refresh_finops_metrics_loop(interval_seconds: int = 15) -> None:
-    """Background task that recomputes and caches metrics on a fixed interval."""
-    await asyncio.to_thread(_refresh_cached_metrics)
+async def refresh_finops_metrics_loop(interval_seconds: int | None = None) -> None:
+    """Background task that periodically refreshes the Prometheus metrics cache."""
+    interval = max(5, interval_seconds if interval_seconds is not None else settings.metrics_refresh_seconds)
     while True:
-        await asyncio.sleep(interval_seconds)
         try:
             await asyncio.to_thread(_refresh_cached_metrics)
         except Exception:
-            logger.exception("Background metrics refresh failed")
+            logger.exception("Background Prometheus metrics refresh failed")
+        await asyncio.sleep(interval)
