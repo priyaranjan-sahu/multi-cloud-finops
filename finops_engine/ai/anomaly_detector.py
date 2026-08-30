@@ -48,6 +48,13 @@ class AnomalyDetector:
 
         daily["iforest_score"] = iforest_flags
 
+        daily["mean"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
+            lambda x: x.shift(1).rolling(7, min_periods=3).mean()
+        )
+        daily["std"] = daily.groupby(["provider_name", "service_name"])["billed_cost"].transform(
+            lambda x: x.shift(1).rolling(7, min_periods=3).std()
+        )
+
         import numpy as np
 
         std_safe = daily["std"].fillna(0)
