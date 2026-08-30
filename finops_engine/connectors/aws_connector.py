@@ -27,6 +27,7 @@ class AWSConnector:
         try:
             import boto3
 
+            client = boto3.client("ce", region_name=self.region_name)
             next_token = None
             while True:
                 kwargs = {
