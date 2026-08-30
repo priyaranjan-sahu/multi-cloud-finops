@@ -69,7 +69,8 @@ app = FastAPI(
 
 
 # CORS: credentials are only allowed when an explicit origin allow-list is configured.
-origins = settings.cors_origins or ["*"]
+is_prod_env = settings.environment.lower() == "production" or not settings.mock_mode
+origins = settings.cors_origins if settings.cors_origins else ([] if is_prod_env else ["*"])
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -83,7 +84,12 @@ api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKeyAuth", auto_e
 
 
 async def verify_api_key(api_key: str | None = Depends(api_key_header)):
-    """Validates the API key when configured."""
+    """Validates the API key with strict security and constant-time comparison."""
+    if not settings.api_key and not settings.allow_anonymous:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Set FINOP_API_KEY or FINOP_ALLOW_ANONYMOUS=true.",
+        )
     if settings.api_key and (not api_key or not hmac.compare_digest(api_key, settings.api_key)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
