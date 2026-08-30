@@ -1,8 +1,8 @@
 """
-Unit tests for AI Anomaly Detection, Cost Forecasting, and Rightsizing engines.
+Unit tests for Community Edition AI Anomaly Detection and Cost Forecasting engines.
 """
 
-from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
+from finops_engine.ai import AnomalyDetector, CostForecaster
 from finops_engine.connectors import MockTelemetryConnector
 
 
@@ -95,49 +95,3 @@ def test_forecaster_empty_records():
     result = forecaster.predict_future_cost([])
     assert result["forecast"] == []
     assert result["total_projected_spend_usd"] == 0.0
-
-
-def test_rightsizing_engine_structure():
-    connector = MockTelemetryConnector(days=30)
-    records = connector.fetch_cost_data()
-    engine = RightsizingEngine()
-    result = engine.generate_recommendations(records)
-
-    assert "total_potential_monthly_savings_usd" in result
-    assert "recommendations" in result
-    assert len(result["recommendations"]) > 0
-
-
-def test_rightsizing_recommendations_fields():
-    connector = MockTelemetryConnector(days=30)
-    records = connector.fetch_cost_data()
-    engine = RightsizingEngine()
-    result = engine.generate_recommendations(records)
-    for rec in result["recommendations"]:
-        assert "id" in rec
-        assert "provider" in rec
-        assert "action" in rec
-        assert "estimated_monthly_savings_usd" in rec
-
-
-def test_rightsizing_recommendations_derived_from_data():
-    connector = MockTelemetryConnector(days=30, seed=42)
-    records = connector.fetch_cost_data()
-    engine = RightsizingEngine()
-    result = engine.generate_recommendations(records)
-
-    known_resources = {record.resource_id for record in records}
-    assert result["recommendations_count"] > 0
-    for rec in result["recommendations"]:
-        # Every recommendation must reference a real resource seen in telemetry
-        assert rec["resource_id"] in known_resources
-        assert rec["estimated_monthly_savings_usd"] > 0
-        assert rec["projected_monthly_cost_usd"] < rec["current_monthly_cost_usd"]
-
-
-def test_rightsizing_empty_records():
-    engine = RightsizingEngine()
-    result = engine.generate_recommendations([])
-    assert result["recommendations"] == []
-    assert result["total_potential_monthly_savings_usd"] == 0.0
-    assert result["recommendations_count"] == 0

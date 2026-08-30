@@ -1,40 +1,37 @@
 """
-Enterprise FastAPI REST API Server for Multi-Cloud FinOps Platform
+FastAPI REST API Server for Multi-Cloud FinOps Platform (Community Edition)
 Exposes RESTful endpoints for FOCUS telemetry, AI anomaly detection, forecasting,
-and rightsizing, with typed response models and optional API-key authentication.
+and Prometheus monitoring, with typed response models and API-key authentication.
 """
 
 import asyncio
-import contextlib
 import hmac
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response, status
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.security import APIKeyHeader
 
 from finops_engine import __version__
-from finops_engine.ai import AnomalyDetector, CostForecaster, RightsizingEngine
+from finops_engine.ai import AnomalyDetector, CostForecaster
 from finops_engine.api.models import (
     AnomalyDetectionResponse,
     CostSummaryResponse,
     ForecastResponse,
     HealthResponse,
-    RightsizingResponse,
 )
 from finops_engine.config import settings
 from finops_engine.connectors import fetch_multicloud_cost
-from finops_engine.errors import ConnectorError, LicenseError
+from finops_engine.errors import ConnectorError
 from finops_engine.exporter import (
     CONTENT_TYPE_LATEST,
     FINOPS_REQUEST_COUNTER,
     get_prometheus_metrics_bytes,
     refresh_finops_metrics_loop,
 )
-from finops_engine.license import verify_pro_license
 from finops_engine.schema import normalize_to_focus_dataframe
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -56,23 +53,16 @@ async def lifespan(app: FastAPI):
         yield
     finally:
         metrics_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
+        with suppress(asyncio.CancelledError):
             await metrics_task
 
 
 app = FastAPI(
-    title="Multi-Cloud FinOps API",
+    title="Multi-Cloud FinOps API (Community Edition)",
     description="Cost optimization and anomaly detection for AWS, GCP, and Azure (FOCUS-aligned)",
     version=__version__,
     lifespan=lifespan,
 )
-
-
-@app.exception_handler(LicenseError)
-async def license_error_handler(_request: Request, exc: LicenseError) -> Response:
-    from fastapi.responses import JSONResponse
-
-    return JSONResponse(status_code=402, content={"detail": str(exc)})
 
 
 # CORS: credentials are only allowed when an explicit origin allow-list is configured.
@@ -241,23 +231,6 @@ async def predict_costs(
         records, source = _get_records(use_mock, 60)
         forecaster = CostForecaster(forecast_days=forecast_days)
         result = forecaster.predict_future_cost(records)
-        result["data_source"] = source
-        return result
-
-    result = await run_in_threadpool(_process)
-    return result
-
-
-@api_router.get("/recommendations/rightsizing", response_model=RightsizingResponse)
-async def get_rightsizing_recommendations(use_mock: bool | None = None):
-    """Fetch actionable rightsizing and waste reduction recommendations."""
-    verify_pro_license("Rightsizing API")
-    FINOPS_REQUEST_COUNTER.labels(endpoint="/api/v1/recommendations/rightsizing").inc()
-
-    def _process():
-        records, source = _get_records(use_mock, 30)
-        engine = RightsizingEngine()
-        result = engine.generate_recommendations(records)
         result["data_source"] = source
         return result
 

@@ -1,4 +1,4 @@
-# Multi-Cloud FinOps & Cost Optimization Platform
+# Multi-Cloud FinOps Platform (Community Edition)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI](https://github.com/priyaranjan-sahu/multi-cloud-finops/actions/workflows/ci.yml/badge.svg)](.github/workflows/ci.yml)
@@ -13,7 +13,7 @@
 [![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800.svg?logo=grafana)](https://grafana.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-KEDA-326CE5.svg?logo=kubernetes)](https://kubernetes.io/)
 
-Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GCP, and Azure. All telemetry is normalized to the FOCUS 1.0 schema, exposed through a FastAPI service, and exported to Prometheus for Grafana dashboards.
+Open-core cost aggregation, FOCUS 1.0 normalization, ML anomaly detection, forecasting, and Prometheus monitoring across AWS, GCP, and Azure. 
 
 ## Table of contents
 
@@ -29,21 +29,24 @@ Cost aggregation, anomaly detection, forecasting, and rightsizing across AWS, GC
 - [Kubernetes](#kubernetes)
 - [Tests](#tests)
 - [Tech stack](#tech-stack)
+- [Enterprise Edition & Sponsorship](#enterprise-edition--sponsorship)
 - [Contributing](#contributing)
-- [Support](#support)
 - [License](#license)
 
 ## What it does
 
-| Capability | Description |
-|---|---|
-| Cost aggregation | Multi-cloud spend consolidated into FOCUS 1.0 records via the AWS Cost Explorer, GCP BigQuery billing export, and Azure Cost Management APIs |
-| Anomaly detection | Isolation Forest plus a rolling z-score check, with severity classification |
-| Cost forecasting | 30/60/90-day projections with 95% prediction intervals |
-| Rightsizing | Recommendations across storage, compute, container, and commitment spend, with estimated monthly savings |
-| Spot optimization | Estimated savings from spot / preemptible workload migration |
-| Monitoring | Background metrics exporter feeding Prometheus, with auto-provisioned Grafana dashboards |
-| Autoscaling | KEDA-driven Kubernetes scaling based on utilization ratios |
+| Capability | Community Edition (Free) | Enterprise Edition (Proprietary) |
+|---|:---:|:---:|
+| **Multi-Cloud FOCUS 1.0 Normalization** | ✅ Included | ✅ Included |
+| **AWS / GCP / Azure Connectors** | ✅ Included | ✅ Included + Multi-Account / Org Aggregation |
+| **ML Anomaly Detection (Isolation Forest)** | ✅ Included | ✅ Included |
+| **Cost Forecasting (95% CI Bounds)** | ✅ Included | ✅ Included |
+| **Prometheus Exporter & Grafana Dashboards** | ✅ Included | ✅ Included + Enterprise Dashboards |
+| **KEDA Kubernetes Autoscaler** | ✅ Included | ✅ Included |
+| **Zero-Config Zombie Spend Detection** | 🔒 *Enterprise Only* | ✅ **Included (Agentless FOCUS correlation)** |
+| **Change Intelligence & Deploy Attribution** | 🔒 *Enterprise Only* | ✅ **Included (Git diffs, SHAs, authors)** |
+| **Automated Rightsizing & Waste Elimination** | 🔒 *Enterprise Only* | ✅ **Included (Compute, Spot, Commitments)** |
+| **Live CloudWatch / GCP / Azure Audit Logs** | 🔒 *Enterprise Only* | ✅ **Included (Continuous real-time telemetry)** |
 
 ## Architecture
 
@@ -58,7 +61,7 @@ flowchart LR
     GCP --> CON
     AZ --> CON
     CON --> FOC["FOCUS 1.0 FocusRecord"]
-    FOC --> AI["AI engines"]
+    FOC --> AI["AI engines (Anomaly / Forecast)"]
     FOC --> API["FastAPI /api/v1"]
     FOC --> CLI["scripts CLI"]
     AI --> API
@@ -106,7 +109,6 @@ Runtime behavior is controlled by environment variables:
 | `FINOP_MOCK_MODE` | `false` | Use synthetic telemetry; `.env.example` enables it only for local demos |
 | `FINOP_ALLOW_MOCK_FALLBACK` | `false` | Fall back to synthetic data when live fetch returns nothing |
 | `FINOP_API_KEY` | *(empty)* | When set, all `/api/*` routes require an `X-API-Key` header |
-| `FINOP_LICENSE_KEY` | *(empty)* | Pro/Enterprise license key (format: `FINOP_PRO_LICENSE_KEY_<token>`). Unlocks: Multi-Cloud Aggregation, Rightsizing API & CLI, Anomaly Detection CLI, Cost Forecasting CLI, Spot Optimization CLI, Export CLI. Obtain via [GitHub Sponsors](https://github.com/sponsors/priyaranjan-sahu) |
 | `FINOP_CORS_ORIGINS` | *(empty = allow all)* | Comma-separated origin allow-list for CORS |
 | `FINOP_METRICS_REFRESH_SECONDS` | `15` | How often Prometheus metrics are recomputed |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
@@ -127,11 +129,11 @@ multi-cloud-finops/
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── SECURITY.md
-├── social-preview.png              # Repository social preview image
+├── social-preview.jpg              # Repository social preview image
 ├── assets/
 │   └── terminal-demo.svg           # README demo image
 │
-├── finops_engine/                  # Core package
+├── finops_engine/                  # Core open-source package
 │   ├── config.py                   # Env-driven settings
 │   ├── errors.py                   # Domain exceptions
 │   ├── schema/
@@ -144,8 +146,7 @@ multi-cloud-finops/
 │   │   └── __init__.py             # Fail-closed multi-provider gateway
 │   ├── ai/
 │   │   ├── anomaly_detector.py     # IsolationForest + z-score
-│   │   ├── cost_forecaster.py      # Linear regression + prediction intervals
-│   │   └── rightsizing_engine.py   # Waste-vector analysis
+│   │   └── cost_forecaster.py      # Linear regression + prediction intervals
 │   ├── exporter/
 │   │   └── metrics_exporter.py     # Background Prometheus exporter
 │   └── api/
@@ -154,10 +155,7 @@ multi-cloud-finops/
 │
 ├── scripts/                        # CLI tools (python -m scripts.<tool>)
 │   ├── anomaly_detection.py
-│   ├── cost_forecasting.py
-│   ├── rightsizing.py
-│   ├── spot_optimization.py
-│   └── export_recommendations.py
+│   └── cost_forecasting.py
 │
 ├── src/
 │   └── main.py                     # Entry point (uvicorn)
@@ -179,7 +177,6 @@ Interactive docs are served at `/docs`. Every response includes a `data_source` 
 | `GET` | `/api/v1/costs/focus-export` | FOCUS 1.0 telemetry export (paginated via `limit`/`offset`) |
 | `GET` | `/api/v1/anomalies/detect` | Anomaly detection with severity and baseline deviation |
 | `GET` | `/api/v1/forecast/predict` | Spend projection with confidence bounds |
-| `GET` | `/api/v1/recommendations/rightsizing` | Rightsizing actions with estimated monthly savings |
 | `GET` | `/metrics` | Prometheus scrape endpoint |
 
 ### Example: anomaly detection
@@ -209,9 +206,6 @@ Interactive docs are served at `/docs`. Every response includes a `data_source` 
 ```bash
 python -m scripts.anomaly_detection --days 90
 python -m scripts.cost_forecasting --history-days 180 --forecast-days 90
-python -m scripts.rightsizing --days 90
-python -m scripts.spot_optimization --days 90 --discount-pct 0.65
-python -m scripts.export_recommendations --days 90 --output recommendations.json
 ```
 
 ## Monitoring
@@ -222,10 +216,9 @@ Metrics exported to Prometheus:
 |---|---|
 | `finops_cloud_cost_usd` | `provider`, `service` |
 | `finops_anomalies_active_count` | `severity` |
-| `finops_potential_savings_usd` | `provider`, `category` |
 | `finops_api_requests_total` | `endpoint` |
 
-The Grafana dashboard includes panels for total spend, active anomalies, potential savings, spend distribution by provider/service, and savings by waste category.
+The Grafana dashboard includes panels for total spend, active anomalies, and spend distribution by provider/service.
 
 ## Infrastructure
 
@@ -240,7 +233,7 @@ kubectl apply -f kubernetes/finops-runtime-config.yaml
 kubectl apply -f kubernetes/deployment.yaml
 kubectl apply -f kubernetes/keda_autoscaler.yaml
 ```
-Replace `ghcr.io/your-org/multi-cloud-finops:1.1.0` with your published immutable image tag before applying the deployment.
+Replace `ghcr.io/your-org/multi-cloud-finops:1.3.0` with your published immutable image tag before applying the deployment.
 
 The KEDA ScaledObject scales the deployment between 1-15 replicas based on CPU (70%) and memory (80%) utilization thresholds.
 
@@ -268,40 +261,38 @@ See `CONTRIBUTING.md` for the full workflow.
 | Orchestration | Kubernetes + KEDA |
 | Containerization | Docker + Docker Compose |
 
-## Contributing
-
-See `CONTRIBUTING.md` for the development workflow and conventions. Pull
-requests are welcome; for larger changes, open an issue first.
-
-## Ecosystem & Companion Tools
-
-For operational and security audit capabilities that complement this FinOps engine, check out the companion tool:
-- **[Multi-Cloud Automation Scripts](https://github.com/priyaranjan-sahu/multi-cloud-automation-scripts)**: A repository of audit scripts (PowerShell, Bash, Python) designed to scan storage exposure, verify private endpoint configurations, and run compliance checks across AWS, Azure, and GCP.
-
 ---
 
-## Support & Sponsorship
+## Enterprise Edition & Sponsorship
 
-If this project is useful to your organization, please consider supporting its development through GitHub Sponsors:
+For high-scale cloud footprints requiring automated waste eradication and deployment tracking, the proprietary **Enterprise Edition** includes:
+
+* **Zero-Config Zombie Spend Detection:** Agentless cross-correlation of FOCUS telemetry to find provisioned resources with zero activity metrics (idle NAT gateways, orphaned LBs, warm containers, idle databases).
+* **Change Intelligence & Deployment Attribution:** Directly links billing baseline shifts to Git commit SHAs, authors, and configuration diffs (e.g. `min-instances: 0 -> 1`).
+* **Automated Rightsizing & Waste Analysis:** Multi-cloud compute downscaling, spot migration recommendations, and commitment coverage optimization.
+* **Continuous Cloud Audit Connectors:** Deep integration with live CloudWatch, GCP Monitoring, and Azure Monitor metrics.
 
 [![Sponsor priyaranjan-sahu](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/priyaranjan-sahu)
 
-### Sponsorship Tiers
+### Sponsorship & Access Tiers
 
-We offer several tiers to suit individuals, small teams, and enterprises:
-
-*   **☕ $10 / month (Supporter):** Show your support! Get an official GitHub Sponsor badge and recognition in our contributors list.
-*   **🚀 $39 / month (Pro Individual):** Obtain a cryptographically signed **`FINOP_LICENSE_KEY`** to unlock all self-hosted Pro features. Includes priority email support and access to a private Discord channel.
-*   **💼 $99 / month (Team):** Unlocks Pro features for your entire team. Includes up to 4 hours of custom setup/integration video support and priority response (24h SLA).
-*   **🏢 $299 / month (Enterprise):** Full enterprise consulting. Includes monthly 1-hour architecture & optimization review calls, direct input on the project roadmap, 4-hour SLA for critical issues, and your company logo prominently displayed below!
-
-### Enterprise Sponsors
-
-*(Your company logo here — sponsor the Enterprise tier to have your brand featured!)*
+* **☕ $10 / month (Supporter):** Recognition in our contributors list and official sponsor badge.
+* **🚀 $39 / month (Pro Individual):** Private access to the Enterprise repository, pre-built enterprise Docker images, and private Discord support.
+* **💼 $99 / month (Team):** Full enterprise repository access for your team, custom onboarding video support, and 24h SLA.
+* **🏢 $299 / month (Enterprise):** Monthly 1-on-1 architecture review calls, direct input on roadmap, and 4h SLA.
 
 ---
 
-## License
+## Contributing
 
-MIT — see [LICENSE](./LICENSE).
+See `CONTRIBUTING.md` for the development workflow and conventions. Pull requests are welcome; for larger changes, open an issue first.
 
+## Ecosystem & Companion Tools
+
+For operational and security audit capabilities that complement this FinOps engine, check out:
+- **[Multi-Cloud Automation Scripts](https://github.com/priyaranjan-sahu/multi-cloud-automation-scripts)**: Audit scripts (PowerShell, Bash, Python) designed to scan storage exposure, verify private endpoint configurations, and run compliance checks across AWS, Azure, and GCP.
+
+## License & Intellectual Property
+
+* **Community Edition:** Distributed under the [MIT License](./LICENSE). Copyright (c) 2026 Priya Ranjan Sahu.
+* **Enterprise Edition:** Proprietary & Confidential. Access granted via [GitHub Sponsors](https://github.com/sponsors/priyaranjan-sahu) or commercial enterprise license agreements.

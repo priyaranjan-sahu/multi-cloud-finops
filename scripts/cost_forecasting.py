@@ -4,11 +4,9 @@ import argparse
 
 from finops_engine.ai import CostForecaster
 from finops_engine.connectors import MockTelemetryConnector
-from finops_engine.license import verify_pro_license
 
 
 def run_cost_prediction(forecast_days: int = 30, history_days: int = 60) -> dict:
-    verify_pro_license("CLI Cost Forecasting")
     print(f"Fetching {history_days} days of historical cost data for a {forecast_days}-day forecast...")
     connector = MockTelemetryConnector(days=history_days)
     records = connector.fetch_cost_data()

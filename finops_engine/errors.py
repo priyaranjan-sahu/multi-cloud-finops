@@ -16,7 +16,3 @@ class ConnectorError(FinOpsError):
 
 class DataFetchError(ConnectorError):
     """Raised when live fetching returns no cost data (fail-closed)."""
-
-
-class LicenseError(FinOpsError):
-    """Raised when an enterprise feature is accessed without a valid Pro license."""

@@ -1,5 +1,5 @@
 """
-Connector gateway for multi-cloud cost telemetry.
+Connector gateway for multi-cloud cost telemetry (Community Edition).
 
 Provides a single, fail-closed entry point that aggregates AWS, GCP, and Azure
 cost data, plus the mock connector used for demos and tests.
@@ -13,7 +13,6 @@ from cachetools import TTLCache, cached
 
 from finops_engine.config import settings
 from finops_engine.errors import DataFetchError
-from finops_engine.license import verify_pro_license
 from finops_engine.schema.focus_spec import FocusRecord
 
 from .aws_connector import AWSConnector
@@ -71,9 +70,6 @@ def fetch_multicloud_cost(
         connectors.append(GCPConnector(project_id=settings.gcp_project_id, billing_table=settings.gcp_billing_table))
     if settings.azure_subscription_id:
         connectors.append(AzureConnector(subscription_id=settings.azure_subscription_id))
-
-    if len(connectors) > 1:
-        verify_pro_license("Multi-Cloud Aggregation")
 
     if not connectors:
         if allow_fallback:

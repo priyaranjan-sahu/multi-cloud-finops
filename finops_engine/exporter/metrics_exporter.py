@@ -1,4 +1,4 @@
-"""Prometheus metrics for the FinOps engine.
+"""Prometheus metrics for the FinOps engine (Community Edition).
 
 Metrics are recomputed on a background loop so /metrics stays fast and never
 blocks on model fitting, cached between refreshes, and label sets are cleared
@@ -13,7 +13,6 @@ from typing import TypedDict
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 
 from finops_engine.ai.anomaly_detector import AnomalyDetector
-from finops_engine.ai.rightsizing_engine import RightsizingEngine
 from finops_engine.config import settings
 from finops_engine.connectors import fetch_multicloud_cost
 
@@ -39,12 +38,6 @@ FINOPS_ANOMALIES_GAUGE = Gauge(
     ["severity"],
 )
 
-FINOPS_SAVINGS_GAUGE = Gauge(
-    "finops_potential_savings_usd",
-    "Potential monthly savings identified by rightsizing engine in USD",
-    ["provider", "category"],
-)
-
 FINOPS_REQUEST_COUNTER = Counter(
     "finops_api_requests_total",
     "Total API requests served by FinOps Engine",
@@ -61,12 +54,11 @@ _metrics_cache: MetricsCache = {"content": None, "last_refresh": 0.0}
 
 
 def update_finops_metrics() -> None:
-    """Fetches latest telemetry, runs AI engines, and updates Prometheus metrics."""
+    """Fetches latest telemetry, runs AI anomaly detector, and updates Prometheus metrics."""
     try:
         records, _ = fetch_multicloud_cost(use_mock=settings.mock_mode, days=30, allow_fallback=True)
 
         FINOPS_COST_GAUGE.clear()
-        FINOPS_SAVINGS_GAUGE.clear()
         FINOPS_ANOMALIES_GAUGE.clear()
 
         cost_map: dict[tuple[str, str], float] = {}
@@ -86,19 +78,6 @@ def update_finops_metrics() -> None:
 
         for sev, count in severity_counts.items():
             FINOPS_ANOMALIES_GAUGE.labels(severity=sev).set(count)
-
-        rightsizing = RightsizingEngine()
-        recs = rightsizing.generate_recommendations(records)
-
-        # Accumulate per (provider, category) so multiple recommendations
-        # sharing a label set are summed instead of overwriting each other.
-        savings_map: dict[tuple[str, str], float] = {}
-        for rec in recs.get("recommendations", []):
-            key = (rec.get("provider", "Multi-Cloud"), rec.get("category", "General"))
-            savings_map[key] = savings_map.get(key, 0.0) + rec.get("estimated_monthly_savings_usd", 0.0)
-
-        for (provider, category), savings in savings_map.items():
-            FINOPS_SAVINGS_GAUGE.labels(provider=provider, category=category).set(round(savings, 2))
 
     except Exception:
         logger.exception("Failed to update Prometheus metrics")

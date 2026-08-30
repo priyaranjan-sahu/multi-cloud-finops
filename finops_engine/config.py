@@ -30,8 +30,6 @@ class Settings(BaseSettings):
     api_key: str = Field(default="", validation_alias="FINOP_API_KEY")
     cors_origins: list[str] = Field(default_factory=list, validation_alias="FINOP_CORS_ORIGINS")
     metrics_refresh_seconds: int = Field(default=15, validation_alias="FINOP_METRICS_REFRESH_SECONDS")
-    license_key: str = Field(default="", validation_alias="FINOP_LICENSE_KEY")
-    license_public_key: str = Field(default="", validation_alias="FINOP_LICENSE_PUBLIC_KEY")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

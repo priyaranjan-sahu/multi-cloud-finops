@@ -64,25 +64,3 @@ class ForecastResponse(BaseModel):
     confidence_level: str
     data_source: str
     forecast: list[ForecastItem]
-
-
-class RightsizingRecommendation(BaseModel):
-    id: str
-    category: str
-    provider: str
-    service: str
-    resource_id: str
-    action: str
-    current_monthly_cost_usd: float
-    projected_monthly_cost_usd: float
-    estimated_monthly_savings_usd: float
-    confidence: str
-
-
-class RightsizingResponse(BaseModel):
-    total_current_monthly_spend_usd: float
-    total_potential_monthly_savings_usd: float
-    potential_savings_percentage: float
-    recommendations_count: int
-    data_source: str
-    recommendations: list[RightsizingRecommendation]

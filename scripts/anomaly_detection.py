@@ -4,11 +4,9 @@ import argparse
 
 from finops_engine.ai import AnomalyDetector
 from finops_engine.connectors import MockTelemetryConnector
-from finops_engine.license import verify_pro_license
 
 
 def run_anomaly_detection(days: int = 90, contamination: float = 0.05, z_threshold: float = 2.0) -> list:
-    verify_pro_license("CLI Anomaly Detection")
     print(f"Fetching {days} days of telemetry for anomaly detection...")
     connector = MockTelemetryConnector(days=days)
     records = connector.fetch_cost_data()

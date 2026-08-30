@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-29
+
+### Added
+- Change Intelligence and Deployment-to-Cost Attribution engine.
+- Automatic correlation between infrastructure deployment events (commits, authors, diffs) and FOCUS spend shifts.
+- REST endpoints: `POST /api/v1/events/deployments`, `GET /api/v1/events/deployments`, and `GET /api/v1/intelligence/change-attribution`.
+- CLI tool `scripts.change_intelligence` for command-line attribution reports.
+- Comprehensive unit and integration test suite for event schema and correlation accuracy.
+
+## [1.2.0] - 2026-08-28
+
+### Added
+- Zero-Config Universal Zombie Spend Detection for Pro & Enterprise tiers.
+- Cross-correlates FOCUS 1.0 telemetry to find provisioned resources with zero activity metrics.
+- Agentless detection across AWS, GCP, and Azure without requiring CloudWatch/Datadog IAM permissions.
+
 ## [1.1.0] - 2026-08-28
 
 ### Added

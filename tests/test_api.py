@@ -1,6 +1,4 @@
-"""
-Integration tests for the FastAPI REST API endpoints.
-"""
+"""Integration tests for the Community Edition FastAPI REST API endpoints."""
 
 from fastapi.testclient import TestClient
 
@@ -41,7 +39,7 @@ def test_cost_summary_includes_region_breakdown():
     assert response.status_code == 200
     data = response.json()
     assert "spend_by_region" in data
-    assert data["spend_by_region"]  # mock telemetry spans us-east-1 / us-central1 / eastus
+    assert data["spend_by_region"]
 
 
 def test_focus_export_endpoint():
@@ -76,23 +74,6 @@ def test_cost_forecast_endpoint():
     assert "total_projected_spend_usd" in data
     assert "forecast" in data
     assert len(data["forecast"]) == 30
-
-
-def test_rightsizing_recommendations_endpoint(monkeypatch):
-    import sys
-
-    app_module = sys.modules["finops_engine.api.app"]
-    monkeypatch.setattr(app_module, "verify_pro_license", lambda *_: None)
-    response = client.get("/api/v1/recommendations/rightsizing?use_mock=true")
-    assert response.status_code == 200
-    data = response.json()
-    assert "total_potential_monthly_savings_usd" in data
-    assert len(data["recommendations"]) > 0
-
-
-def test_rightsizing_requires_license():
-    response = client.get("/api/v1/recommendations/rightsizing?use_mock=true")
-    assert response.status_code == 402
 
 
 def test_prometheus_metrics_endpoint():
@@ -140,9 +121,7 @@ def test_openapi_declares_api_key_scheme_when_configured(monkeypatch):
     schema = app.openapi()
     assert "ApiKeyAuth" in schema["components"]["securitySchemes"]
     assert schema["components"]["securitySchemes"]["ApiKeyAuth"]["name"] == "X-API-Key"
-    # /api/* operations are documented as requiring the key...
     assert schema["paths"]["/api/v1/costs/summary"]["get"]["security"] == [{"ApiKeyAuth": []}]
-    # ...while public endpoints are not.
     assert "security" not in schema["paths"]["/"]["get"]
 
 
