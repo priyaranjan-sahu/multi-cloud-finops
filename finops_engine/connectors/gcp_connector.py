@@ -1,11 +1,14 @@
 """GCP BigQuery billing export connector."""
 
 import logging
+import re
 from datetime import datetime, timedelta, timezone
 
 from finops_engine.schema.focus_spec import ChargeCategory, CloudProvider, FocusRecord, categorize_service
 
 logger = logging.getLogger("finops.connectors.gcp")
+
+_TABLE_REGEX = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
 
 
 class GCPConnector:
@@ -13,7 +16,10 @@ class GCPConnector:
 
     def __init__(self, project_id: str = "default-gcp-project", billing_table: str | None = None):
         self.project_id = project_id
-        self.billing_table = billing_table or f"{project_id}.billing.gcp_billing_export_v1"
+        table = billing_table or f"{project_id}.billing.gcp_billing_export_v1"
+        if not _TABLE_REGEX.match(table):
+            raise ValueError(f"Invalid BigQuery table name: {table!r}")
+        self.billing_table = table
 
     def fetch_cost_data(self, start_date: str | None = None, end_date: str | None = None) -> list[FocusRecord]:
         """Fetches GCP billing metrics from the BigQuery export and maps to FOCUS schema."""

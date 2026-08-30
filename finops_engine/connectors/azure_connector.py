@@ -58,44 +58,49 @@ class AzureConnector:
                 ),
             )
 
-            result = client.query.usage(scope=scope, parameters=query)
-            if not result:
-                return records
+            current_result = client.query.usage(scope=scope, parameters=query)
+            while current_result and current_result.rows:
+                columns = [c.name for c in current_result.columns] if current_result.columns else []
 
-            columns = [c.name for c in result.columns] if result.columns else []
+                for row in current_result.rows or []:
+                    try:
+                        # Normalize column names to lowercase so the lookup is
+                        # case-insensitive regardless of Azure API version.
+                        values = {(k or "").lower(): v for k, v in zip(columns, row, strict=False)}
+                        date_str = values.get("date")
+                        time_start = datetime.strptime(str(date_str), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                        time_end = time_start + timedelta(days=1)
+                        billed = float(values.get("totalcost") or 0.0)
+                        usage_qty = float(values.get("usagequantity") or 0.0)
+                        service_name = str(values.get("servicename") or "Unknown Service")
 
-            for row in result.rows or []:
-                try:
-                    # Normalize column names to lowercase so the lookup is
-                    # case-insensitive regardless of Azure API version.
-                    values = {(k or "").lower(): v for k, v in zip(columns, row, strict=False)}
-                    date_str = values.get("date")
-                    time_start = datetime.strptime(str(date_str), "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                    time_end = time_start + timedelta(days=1)
-                    billed = float(values.get("totalcost") or 0.0)
-                    usage_qty = float(values.get("usagequantity") or 0.0)
-                    service_name = str(values.get("servicename") or "Unknown Service")
-
-                    records.append(
-                        FocusRecord(
-                            provider_name=CloudProvider.AZURE,
-                            publisher_name="Microsoft Azure",
-                            charge_category=ChargeCategory.USAGE,
-                            billed_cost=round(billed, 4),
-                            effective_cost=round(billed, 4),
-                            currency="USD",
-                            usage_quantity=round(usage_qty, 2),
-                            usage_unit="Hours",
-                            service_name=service_name,
-                            service_category=categorize_service(service_name),
-                            region_id="global",
-                            sub_account_id=self.subscription_id,
-                            billing_period_start=time_start,
-                            billing_period_end=time_end,
+                        records.append(
+                            FocusRecord(
+                                provider_name=CloudProvider.AZURE,
+                                publisher_name="Microsoft Azure",
+                                charge_category=ChargeCategory.USAGE,
+                                billed_cost=round(billed, 4),
+                                effective_cost=round(billed, 4),
+                                currency="USD",
+                                usage_quantity=round(usage_qty, 2),
+                                usage_unit="Hours",
+                                service_name=service_name,
+                                service_category=categorize_service(service_name),
+                                region_id="global",
+                                sub_account_id=self.subscription_id,
+                                billing_period_start=time_start,
+                                billing_period_end=time_end,
+                                resource_id=f"azure:{service_name.lower().replace(' ', '-')}",
+                            )
                         )
-                    )
-                except (TypeError, ValueError) as exc:
-                    logger.warning("Skipping malformed Azure record: %s", exc)
+                    except (TypeError, ValueError) as exc:
+                        logger.warning("Skipping malformed Azure record: %s", exc)
+
+                next_link = getattr(current_result, "next_link", None)
+                if next_link and hasattr(client.query, "usage_by_next_link"):
+                    current_result = client.query.usage_by_next_link(next_link)
+                else:
+                    break
         except Exception as e:
             logger.warning("Azure Cost Management query failed or credentials not present (%s).", e)
 

@@ -61,7 +61,8 @@ class CostForecaster:
 
         x_mean = float(np.mean(X))
         x_var = float(np.sum((X - x_mean) ** 2))
-        t_crit = float(stats.t.ppf(0.975, df=dof))
+        effective_dof = max(3, dof) if dof > 0 else 3
+        t_crit = float(stats.t.ppf(0.975, df=effective_dof))
 
         predictions = self.model.predict(future_indices.reshape(-1, 1))
 

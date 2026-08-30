@@ -27,49 +27,59 @@ class AWSConnector:
         try:
             import boto3
 
-            client = boto3.client("ce", region_name=self.region_name)
-            response = client.get_cost_and_usage(
-                TimePeriod={"Start": start_date, "End": end_date},
-                Granularity="DAILY",
-                Metrics=["UnblendedCost", "AmortizedCost", "UsageQuantity"],
-                GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}],
-            )
+            next_token = None
+            while True:
+                kwargs = {
+                    "TimePeriod": {"Start": start_date, "End": end_date},
+                    "Granularity": "DAILY",
+                    "Metrics": ["UnblendedCost", "AmortizedCost", "UsageQuantity"],
+                    "GroupBy": [{"Type": "DIMENSION", "Key": "SERVICE"}],
+                }
+                if next_token:
+                    kwargs["NextPageToken"] = next_token
 
-            for result in response.get("ResultsByTime", []):
-                for group in result.get("Groups", []):
-                    service_name = group["Keys"][0]
-                    metrics = group["Metrics"]
-                    billed = float(metrics.get("UnblendedCost", {}).get("Amount", 0.0))
-                    effective = float(metrics.get("AmortizedCost", {}).get("Amount", billed))
-                    usage_qty = float(metrics.get("UsageQuantity", {}).get("Amount", 0.0))
+                response = client.get_cost_and_usage(**kwargs)
 
-                    try:
-                        time_start = datetime.strptime(result["TimePeriod"]["Start"], "%Y-%m-%d").replace(
-                            tzinfo=timezone.utc
-                        )
-                        time_end = datetime.strptime(result["TimePeriod"]["End"], "%Y-%m-%d").replace(
-                            tzinfo=timezone.utc
-                        )
-                        records.append(
-                            FocusRecord(
-                                provider_name=CloudProvider.AWS,
-                                publisher_name="Amazon Web Services",
-                                charge_category=ChargeCategory.USAGE,
-                                billed_cost=round(billed, 4),
-                                effective_cost=round(effective, 4),
-                                currency="USD",
-                                usage_quantity=round(usage_qty, 2),
-                                usage_unit="Hours",
-                                service_name=service_name,
-                                service_category=categorize_service(service_name),
-                                region_id=self.region_name,
-                                sub_account_id=self.account_id or "unknown-aws-account",
-                                billing_period_start=time_start,
-                                billing_period_end=time_end,
+                for result in response.get("ResultsByTime", []):
+                    for group in result.get("Groups", []):
+                        service_name = group["Keys"][0]
+                        metrics = group["Metrics"]
+                        billed = float(metrics.get("UnblendedCost", {}).get("Amount", 0.0))
+                        effective = float(metrics.get("AmortizedCost", {}).get("Amount", billed))
+                        usage_qty = float(metrics.get("UsageQuantity", {}).get("Amount", 0.0))
+
+                        try:
+                            time_start = datetime.strptime(result["TimePeriod"]["Start"], "%Y-%m-%d").replace(
+                                tzinfo=timezone.utc
                             )
-                        )
-                    except (TypeError, ValueError) as exc:
-                        logger.warning("Skipping malformed AWS record for %s: %s", service_name, exc)
+                            time_end = datetime.strptime(result["TimePeriod"]["End"], "%Y-%m-%d").replace(
+                                tzinfo=timezone.utc
+                            )
+                            records.append(
+                                FocusRecord(
+                                    provider_name=CloudProvider.AWS,
+                                    publisher_name="Amazon Web Services",
+                                    charge_category=ChargeCategory.USAGE,
+                                    billed_cost=round(billed, 4),
+                                    effective_cost=round(effective, 4),
+                                    currency="USD",
+                                    usage_quantity=round(usage_qty, 2),
+                                    usage_unit="Hours",
+                                    service_name=service_name,
+                                    service_category=categorize_service(service_name),
+                                    region_id=self.region_name,
+                                    sub_account_id=self.account_id or "unknown-aws-account",
+                                    billing_period_start=time_start,
+                                    billing_period_end=time_end,
+                                    resource_id=f"aws:{service_name.lower().replace(' ', '-')}",
+                                )
+                            )
+                        except (TypeError, ValueError) as exc:
+                            logger.warning("Skipping malformed AWS record for %s: %s", service_name, exc)
+
+                next_token = response.get("NextPageToken")
+                if not next_token:
+                    break
         except Exception as e:
             logger.warning("AWS Cost Explorer call failed or credentials not present (%s).", e)
 

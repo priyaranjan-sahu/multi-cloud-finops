@@ -27,13 +27,14 @@ class Settings(BaseSettings):
     gcp_billing_table: str = Field(default="", validation_alias="FINOP_GCP_BILLING_TABLE")
     azure_subscription_id: str = Field(default="", validation_alias="FINOP_AZURE_SUBSCRIPTION_ID")
     allow_mock_fallback: bool = Field(default=False, validation_alias="FINOP_ALLOW_MOCK_FALLBACK")
+    allow_anonymous: bool = Field(default=False, validation_alias="FINOP_ALLOW_ANONYMOUS")
     api_key: str = Field(default="", validation_alias="FINOP_API_KEY")
     cors_origins: list[str] = Field(default_factory=list, validation_alias="FINOP_CORS_ORIGINS")
     metrics_refresh_seconds: int = Field(default=15, validation_alias="FINOP_METRICS_REFRESH_SECONDS")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    @field_validator("mock_mode", mode="before")
+    @field_validator("mock_mode", "allow_anonymous", mode="before")
     @classmethod
     def parse_mock_mode(cls, v: Any) -> bool:
         if v is None:
@@ -74,6 +75,8 @@ class Settings(BaseSettings):
             val = int(str(v).strip())
             if val < 1:
                 return 15
+            if val > 86400:
+                return 86400
             return val
         except ValueError:
             return 15
