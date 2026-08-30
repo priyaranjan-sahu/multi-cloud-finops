@@ -85,11 +85,6 @@ api_key_header = APIKeyHeader(name="X-API-Key", scheme_name="ApiKeyAuth", auto_e
 
 async def verify_api_key(api_key: str | None = Depends(api_key_header)):
     """Validates the API key with strict security and constant-time comparison."""
-    if not settings.api_key and not settings.allow_anonymous:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required. Set FINOP_API_KEY or FINOP_ALLOW_ANONYMOUS=true.",
-        )
     if settings.api_key and (not api_key or not hmac.compare_digest(api_key, settings.api_key)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
