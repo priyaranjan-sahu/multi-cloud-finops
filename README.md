@@ -277,8 +277,8 @@ For high-scale cloud footprints requiring automated waste eradication and deploy
 ### Sponsorship & Access Tiers
 
 * **☕ $10 / month (Supporter):** Recognition in our contributors list and official sponsor badge.
-* **🚀 $39 / month (Pro Individual):** Private access to the Enterprise repository, pre-built enterprise Docker images, and private Discord support.
-* **💼 $99 / month (Team):** Full enterprise repository access for your team, custom onboarding video support, and 24h SLA.
+* **🚀 $39 / month (Pro Individual):** Pull access to pre-built compiled Enterprise Docker images (`ghcr.io/...`), CLI tools, and private Discord support.
+* **💼 $99 / month (Team):** Full enterprise container access for your team, custom onboarding video support, and 24h SLA.
 * **🏢 $299 / month (Enterprise):** Monthly 1-on-1 architecture review calls, direct input on roadmap, and 4h SLA.
 
 ---

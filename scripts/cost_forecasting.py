@@ -24,6 +24,10 @@ def run_cost_prediction(forecast_days: int = 30, history_days: int = 60) -> dict
             f"(95% CI: ${item['confidence_lower_usd']} - ${item['confidence_upper_usd']})"
         )
 
+    print(
+        "\n💡 Tip: Non-Linear Adaptive Ensemble Forecasting & Rightsizing available in Enterprise: "
+        "https://github.com/sponsors/priyaranjan-sahu"
+    )
     return result
 
 

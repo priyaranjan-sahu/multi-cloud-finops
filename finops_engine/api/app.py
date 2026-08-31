@@ -242,6 +242,62 @@ async def predict_costs(
     return result
 
 
+@api_router.get("/recommendations/rightsizing")
+async def rightsizing_teaser():
+    """Zero-Config Zombie Spend Detection & Automated Rightsizing (Enterprise Feature)."""
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        content={
+            "status": "upgrade_required",
+            "tier": "Pro / Enterprise",
+            "feature": "Zero-Config Zombie Spend Detection & Rightsizing Heuristics",
+            "description": (
+                "Agentless FOCUS multi-metric correlation for idle NATs, orphan LBs, and container capacity."
+            ),
+            "purchase_url": "https://github.com/sponsors/priyaranjan-sahu",
+            "documentation": "https://github.com/priyaranjan-sahu/multi-cloud-finops#enterprise-edition--sponsorship",
+        },
+    )
+
+
+@api_router.get("/intelligence/change-attribution")
+async def change_intelligence_teaser():
+    """Change Intelligence & Deployment-to-Cost Attribution (Enterprise Feature)."""
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        content={
+            "status": "upgrade_required",
+            "tier": "Pro / Enterprise",
+            "feature": "Change Intelligence & Deployment Attribution",
+            "description": "Correlate billing baseline shifts to Git commit SHAs, authors, and configuration diffs.",
+            "purchase_url": "https://github.com/sponsors/priyaranjan-sahu",
+            "documentation": "https://github.com/priyaranjan-sahu/multi-cloud-finops#enterprise-edition--sponsorship",
+        },
+    )
+
+
+@api_router.post("/events/deployments")
+async def deployment_events_teaser():
+    """CI/CD Deployment Event Ingestion (Enterprise Feature)."""
+    from fastapi.responses import JSONResponse
+
+    return JSONResponse(
+        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        content={
+            "status": "upgrade_required",
+            "tier": "Pro / Enterprise",
+            "feature": "Persistent Deployment Event Tracking",
+            "description": "Ingest CI/CD webhooks into persistent storage for real-time cost attribution.",
+            "purchase_url": "https://github.com/sponsors/priyaranjan-sahu",
+            "documentation": "https://github.com/priyaranjan-sahu/multi-cloud-finops#enterprise-edition--sponsorship",
+        },
+    )
+
+
 @app.get("/metrics", dependencies=[Depends(verify_api_key)])
 def prometheus_metrics():
     """Prometheus metrics scraper endpoint (served from the background refresh cache).

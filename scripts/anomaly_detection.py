@@ -24,6 +24,10 @@ def run_anomaly_detection(days: int = 90, contamination: float = 0.05, z_thresho
             f"(spike: +${anomaly['anomaly_excess_usd']}) [{anomaly['severity']}]"
         )
 
+    print(
+        "\n💡 Tip: Automated Zero-Config Rightsizing and Git Attribution available in Enterprise: "
+        "https://github.com/sponsors/priyaranjan-sahu"
+    )
     return anomalies
 
 
