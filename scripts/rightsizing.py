@@ -9,10 +9,13 @@ import sys
 def main() -> None:
     banner = """
 ========================================================================================
-🔒 PROPRIETARY FEATURE: Zero-Config Zombie Spend & Automated Rightsizing
+🔒 PROPRIETARY FEATURE: Zero-Config Zombie Spend & Warm Uptime Trap Detection
 ========================================================================================
-Agentless FOCUS 1.0 multi-metric waste analysis (idle NATs, orphan LBs, idle databases,
-and warm serverless container capacity) is available in the Enterprise Edition.
+Agentless FOCUS 1.0 Bi-Modal Activity Density analysis:
+• Detects pure zombies (0.0 requests, 0 MB transfer).
+• Catches 720h warm serverless containers (Cloud Run, Fargate) billing 24/7 flat uptime
+  while serving only synthetic healthchecks (< 2 req/hr, < 50KB payload).
+• Automated compute downscaling, spot migration, and reservation coverage.
 
 To deploy the pre-compiled, production-ready Enterprise Docker container:
 👉 Upgrade on GitHub Sponsors: https://github.com/sponsors/priyaranjan-sahu

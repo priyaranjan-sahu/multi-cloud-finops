@@ -43,7 +43,7 @@ Open-core cost aggregation, FOCUS 1.0 normalization, ML anomaly detection, forec
 | **Cost Forecasting (95% CI Bounds)** | ✅ Included | ✅ Included |
 | **Prometheus Exporter & Grafana Dashboards** | ✅ Included | ✅ Included + Enterprise Dashboards |
 | **KEDA Kubernetes Autoscaler** | ✅ Included | ✅ Included |
-| **Zero-Config Zombie Spend Detection** | 🔒 *Enterprise Only* | ✅ **Included (Agentless FOCUS correlation)** |
+| **Zero-Config Zombie Spend & Warm Uptime Traps** | 🔒 *Enterprise Only* | ✅ **Included (Bi-Modal Density: catches 720h warm containers hidden behind health checks)** |
 | **Change Intelligence & Deploy Attribution** | 🔒 *Enterprise Only* | ✅ **Included (Git diffs, SHAs, authors)** |
 | **Automated Rightsizing & Waste Elimination** | 🔒 *Enterprise Only* | ✅ **Included (Compute, Spot, Commitments)** |
 | **Live CloudWatch / GCP / Azure Audit Logs** | 🔒 *Enterprise Only* | ✅ **Included (Continuous real-time telemetry)** |
@@ -267,7 +267,7 @@ See `CONTRIBUTING.md` for the full workflow.
 
 For high-scale cloud footprints requiring automated waste eradication and deployment tracking, the proprietary **Enterprise Edition** includes:
 
-* **Zero-Config Zombie Spend Detection:** Agentless cross-correlation of FOCUS telemetry to find provisioned resources with zero activity metrics (idle NAT gateways, orphaned LBs, warm containers, idle databases).
+* **Zero-Config Zombie Spend & Warm Uptime Traps:** Bi-modal activity and payload density analysis. Detects pure zombies as well as warm serverless revisions (Cloud Run, Fargate, ECS) billing 720h flat instance hours while serving only synthetic health checks (< 2 req/hr, < 50KB payload) that evade traditional FinOps tools.
 * **Change Intelligence & Deployment Attribution:** Directly links billing baseline shifts to Git commit SHAs, authors, and configuration diffs (e.g. `min-instances: 0 -> 1`).
 * **Automated Rightsizing & Waste Analysis:** Multi-cloud compute downscaling, spot migration recommendations, and commitment coverage optimization.
 * **Continuous Cloud Audit Connectors:** Deep integration with live CloudWatch, GCP Monitoring, and Azure Monitor metrics.

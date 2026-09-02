@@ -252,9 +252,10 @@ async def rightsizing_teaser():
         content={
             "status": "upgrade_required",
             "tier": "Pro / Enterprise",
-            "feature": "Zero-Config Zombie Spend Detection & Rightsizing Heuristics",
+            "feature": "Zero-Config Zombie Spend & Warm Uptime Trap Detection",
             "description": (
-                "Agentless FOCUS multi-metric correlation for idle NATs, orphan LBs, and container capacity."
+                "Bi-modal activity density analysis for idle NATs, orphan LBs, and warm "
+                "containers billing 720h uptime behind synthetic health checks."
             ),
             "purchase_url": "https://github.com/sponsors/priyaranjan-sahu",
             "documentation": "https://github.com/priyaranjan-sahu/multi-cloud-finops#enterprise-edition--sponsorship",
