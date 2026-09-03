@@ -29,7 +29,7 @@ dependencies = [
     "scipy==1.15.3",
     "scikit-learn==1.7.2",
     "boto3==1.43.83",
-    "google-cloud-bigquery==3.43.0",
+    "google-cloud-bigquery==3.44.0",
     "azure-mgmt-costmanagement==4.0.1",
     "azure-identity==1.25.3",
     "prometheus-client==0.26.0",
