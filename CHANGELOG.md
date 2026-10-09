@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `GET /` health response now includes an `enterprise_features_locked` list
+  advertising the locked Enterprise capabilities (Self-Healing IaC, ChatOps
+  approvals, multi-cloud/SaaS visibility, license metering).
+- Regression test asserting `finops_engine.__version__` matches the version
+  declared in `pyproject.toml`.
+
+### Fixed
+- `finops_engine.__version__` was stuck at `1.1.0`; it now reports `1.3.0` to
+  match the packaged version.
+- Added the runtime `cachetools` dependency to `pyproject.toml` so `pip install .`
+  includes it (previously only listed in `requirements.txt`).
+- Removed unused `PyJWT` and `cryptography` pins from `requirements.txt`.
+
+### Changed
+- `.env.example` no longer references a non-existent `FINOP_LICENSE_KEY`; it now
+  documents `FINOP_ALLOW_ANONYMOUS`.
+- README configuration table corrected (`FINOP_MOCK_MODE` defaults to `true`,
+  added `FINOP_ALLOW_ANONYMOUS`, clarified `FINOP_CORS_ORIGINS`) and the
+  Enterprise roadmap entries expanded.
+
 ## [1.3.0] - 2026-08-29
 
 ### Added

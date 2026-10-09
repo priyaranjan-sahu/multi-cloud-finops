@@ -14,6 +14,7 @@ class HealthResponse(BaseModel):
     focus_compliance: str
     documentation: str
     prometheus_metrics: str
+    enterprise_features_locked: list[dict[str, str]] | None = None
 
 
 class CostSummaryResponse(BaseModel):

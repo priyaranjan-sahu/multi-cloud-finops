@@ -47,6 +47,10 @@ Open-core cost aggregation, FOCUS 1.0 normalization, ML anomaly detection, forec
 | **Change Intelligence & Deploy Attribution** | 🔒 *Enterprise Only* | ✅ **Included (Git diffs, SHAs, authors)** |
 | **Automated Rightsizing & Waste Elimination** | 🔒 *Enterprise Only* | ✅ **Included (Compute, Spot, Commitments)** |
 | **Live CloudWatch / GCP / Azure Audit Logs** | 🔒 *Enterprise Only* | ✅ **Included (Continuous real-time telemetry)** |
+| **Self-Healing IaC & Automated PRs** | 🔒 *Enterprise Only* | ✅ **Included (Auto-generate Terraform/OpenTofu PRs for cost savings)** |
+| **Interactive ChatOps Approval Workflows** | 🔒 *Enterprise Only* | ✅ **Included (Approve/snooze via Slack & Teams)** |
+| **SaaS License Metering & Optimization** | 🔒 *Enterprise Only* | ✅ **Included (Chargebee, Stripe, Zuora)** |
+| **Multi-Cloud Tag Governance** | 🔒 *Enterprise Only* | ✅ **Included (Standardized policies & auto-migration)** |
 
 ## Architecture
 
@@ -106,10 +110,11 @@ Runtime behavior is controlled by environment variables:
 
 | Variable | Default | Description |
 |---|---|---|
-| `FINOP_MOCK_MODE` | `false` | Use synthetic telemetry; `.env.example` enables it only for local demos |
+| `FINOP_MOCK_MODE` | `true` | Use synthetic telemetry; set `false` for live cloud APIs |
 | `FINOP_ALLOW_MOCK_FALLBACK` | `false` | Fall back to synthetic data when live fetch returns nothing |
 | `FINOP_API_KEY` | *(empty)* | When set, all `/api/*` routes require an `X-API-Key` header |
-| `FINOP_CORS_ORIGINS` | *(empty = allow all)* | Comma-separated origin allow-list for CORS |
+| `FINOP_ALLOW_ANONYMOUS` | `false` | Allow unauthenticated access when running in production mode |
+| `FINOP_CORS_ORIGINS` | *(empty)* | Comma-separated origin allow-list; empty allows all in dev and is required in production |
 | `FINOP_METRICS_REFRESH_SECONDS` | `15` | How often Prometheus metrics are recomputed |
 | `LOG_LEVEL` | `INFO` | Logging verbosity |
 
@@ -271,6 +276,8 @@ For high-scale cloud footprints requiring automated waste eradication and deploy
 * **Change Intelligence & Deployment Attribution:** Directly links billing baseline shifts to Git commit SHAs, authors, and configuration diffs (e.g. `min-instances: 0 -> 1`).
 * **Automated Rightsizing & Waste Analysis:** Multi-cloud compute downscaling, spot migration recommendations, and commitment coverage optimization.
 * **Continuous Cloud Audit Connectors:** Deep integration with live CloudWatch, GCP Monitoring, and Azure Monitor metrics.
+* **Self-Healing IaC & ChatOps:** Automates remediation by generating Terraform/OpenTofu PRs for cost savings. Approve or snooze recommendations interactively directly from Slack or MS Teams.
+* **SaaS License Metering:** Track utilization and optimize underutilized licenses for SaaS tools like Stripe, Chargebee, and Zuora.
 
 [![Sponsor priyaranjan-sahu](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa.svg?style=for-the-badge&logo=github)](https://github.com/sponsors/priyaranjan-sahu)
 

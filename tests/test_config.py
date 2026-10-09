@@ -47,3 +47,16 @@ def test_settings_survive_bad_metrics_refresh_value(monkeypatch, bad_value):
     from finops_engine.config import Settings
 
     assert Settings().metrics_refresh_seconds == 15
+
+
+def test_package_version_matches_pyproject():
+    """The runtime __version__ must match the packaged version in pyproject.toml."""
+    import re
+    from pathlib import Path
+
+    from finops_engine import __version__
+
+    pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
+    match = re.search(r'^version\s*=\s*"([^"]+)"', pyproject.read_text(encoding="utf-8"), re.MULTILINE)
+    assert match is not None, "Could not find version in pyproject.toml"
+    assert __version__ == match.group(1)

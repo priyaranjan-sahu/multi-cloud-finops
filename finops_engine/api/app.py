@@ -140,6 +140,28 @@ def root():
         "focus_compliance": "FOCUS-aligned",
         "documentation": "/docs",
         "prometheus_metrics": "/metrics",
+        "enterprise_features_locked": [
+            {
+                "feature": "Self-Healing IaC",
+                "description": "Upgrade to Enterprise to automatically generate Terraform/OpenTofu PRs for savings.",
+                "url": "https://github.com/sponsors/priyaranjan-sahu",
+            },
+            {
+                "feature": "Interactive ChatOps",
+                "description": "Approve infrastructure changes directly from Slack or Teams.",
+                "url": "https://github.com/sponsors/priyaranjan-sahu",
+            },
+            {
+                "feature": "Multi-Cloud & SaaS Visibility",
+                "description": "Connect AWS, GCP, Azure, and SaaS (Stripe, Chargebee) into a single pane of glass.",
+                "url": "https://github.com/sponsors/priyaranjan-sahu",
+            },
+            {
+                "feature": "AI License Metering",
+                "description": "Enterprise users save 32% more with our SaaS License Optimizer and ensemble models.",
+                "url": "https://github.com/sponsors/priyaranjan-sahu",
+            },
+        ],
     }
 
 
