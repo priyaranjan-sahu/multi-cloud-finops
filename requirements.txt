@@ -11,4 +11,4 @@ azure-mgmt-costmanagement==4.0.1
 azure-identity==1.26.0
 prometheus-client==0.26.0
 pydantic-settings==2.15.0
-cachetools==7.2.0
+cachetools==7.2.2
