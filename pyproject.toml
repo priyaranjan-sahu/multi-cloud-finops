@@ -31,7 +31,7 @@ dependencies = [
     "boto3==1.43.108",
     "google-cloud-bigquery==3.46.1",
     "azure-mgmt-costmanagement==4.0.1",
-    "azure-identity==1.26.0",
+    "azure-identity==1.27.0",
     "prometheus-client==0.26.0",
     "pydantic-settings==2.15.0",
     "cachetools==7.2.0",
